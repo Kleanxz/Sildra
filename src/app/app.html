@@ -1,3 +1,4 @@
+
 <div class="sildra">
 
   <header class="topbar">
@@ -22,31 +23,32 @@
         <h2>Bandeja de tickets</h2>
         <p>Gestiona y da seguimiento a las solicitudes de soporte</p>
       </div>
-<button class="new-ticket" (click)="abrirFormulario()">
-  + Nuevo ticket
-</button>
+
+      <button class="new-ticket" (click)="abrirFormulario()">
+        + Nuevo ticket
+      </button>
     </div>
 
     <section class="counters">
 
       <div class="counter">
         <span class="counter-title">Todos</span>
-        <strong>128</strong>
+        <strong>{{ tickets.length }}</strong>
       </div>
 
       <div class="counter">
         <span class="counter-title">Abiertos</span>
-        <strong>42</strong>
+        <strong>{{ contarEstado('Abierto') }}</strong>
       </div>
 
       <div class="counter">
         <span class="counter-title">En progreso</span>
-        <strong>31</strong>
+        <strong>{{ contarEstado('En progreso') }}</strong>
       </div>
 
       <div class="counter">
         <span class="counter-title">Resueltos</span>
-        <strong>55</strong>
+        <strong>{{ contarEstado('Resuelto') }}</strong>
       </div>
 
     </section>
@@ -55,30 +57,33 @@
 
       <div class="search">
         <span>⌕</span>
+
         <input
           type="text"
+          [(ngModel)]="busqueda"
           placeholder="Buscar tickets..."
         >
       </div>
 
-      <select>
-        <option>Todos los estados</option>
-        <option>Abierto</option>
-        <option>En progreso</option>
-        <option>Resuelto</option>
+      <select [(ngModel)]="filtroEstado">
+        <option value="">Todos los estados</option>
+        <option value="Abierto">Abierto</option>
+        <option value="En progreso">En progreso</option>
+        <option value="Resuelto">Resuelto</option>
       </select>
 
-      <select>
-        <option>Todas las prioridades</option>
-        <option>Alta</option>
-        <option>Media</option>
-        <option>Baja</option>
+      <select [(ngModel)]="filtroPrioridad">
+        <option value="">Todas las prioridades</option>
+        <option value="Alta">Alta</option>
+        <option value="Media">Media</option>
+        <option value="Baja">Baja</option>
       </select>
 
-      <select>
-        <option>Todos los agentes</option>
-        <option>Agente 1</option>
-        <option>Agente 2</option>
+      <select [(ngModel)]="filtroAgente">
+        <option value="">Todos los agentes</option>
+        <option value="María">María</option>
+        <option value="Carlos">Carlos</option>
+        <option value="Sin asignar">Sin asignar</option>
       </select>
 
     </section>
@@ -88,7 +93,11 @@
       <div class="card-header">
         <div>
           <h3>Tickets</h3>
-          <span>128 solicitudes encontradas</span>
+
+          <span>
+            {{ ticketsFiltrados().length }} solicitudes encontradas
+          </span>
+
         </div>
       </div>
 
@@ -97,6 +106,7 @@
         <table>
 
           <thead>
+
             <tr>
               <th>ID</th>
               <th>Ticket</th>
@@ -106,144 +116,220 @@
               <th>Agente</th>
               <th>Fecha</th>
             </tr>
+
           </thead>
 
-       <tbody>
+          <tbody>
 
-  @for (ticket of tickets; track ticket.id) {
+            @for (ticket of ticketsPaginados(); track ticket.id) {
 
-    <tr>
+              <tr>
 
-      <td>{{ ticket.id }}</td>
+                <td>
+                  {{ ticket.id }}
+                </td>
 
-      <td>
-        <strong>{{ ticket.titulo }}</strong>
-        <small>{{ ticket.descripcion }}</small>
-      </td>
+                <td>
 
-      <td>{{ ticket.solicitante }}</td>
+                  <strong>
+                    {{ ticket.titulo }}
+                  </strong>
 
-      <td>
-        <span
-          class="priority"
-          [class.high]="ticket.prioridad === 'Alta'"
-          [class.medium]="ticket.prioridad === 'Media'"
-          [class.low]="ticket.prioridad === 'Baja'">
-          {{ ticket.prioridad }}
-        </span>
-      </td>
+                  <small>
+                    {{ ticket.descripcion }}
+                  </small>
 
-      <td>
-        <span
-          class="status"
-          [class.open]="ticket.estado === 'Abierto'"
-          [class.progress]="ticket.estado === 'En progreso'"
-          [class.resolved]="ticket.estado === 'Resuelto'">
-          {{ ticket.estado }}
-        </span>
-      </td>
+                </td>
 
-      <td>{{ ticket.agente }}</td>
+                <td>
+                  {{ ticket.solicitante }}
+                </td>
 
-      <td>{{ ticket.fecha }}</td>
+                <td>
 
-    </tr>
+                  <span
+                    class="priority"
+                    [class.high]="ticket.prioridad === 'Alta'"
+                    [class.medium]="ticket.prioridad === 'Media'"
+                    [class.low]="ticket.prioridad === 'Baja'"
+                  >
+                    {{ ticket.prioridad }}
+                  </span>
 
-  }
+                </td>
 
-</tbody>
+                <td>
+
+                  <span
+                    class="status"
+                    [class.open]="ticket.estado === 'Abierto'"
+                    [class.progress]="ticket.estado === 'En progreso'"
+                    [class.resolved]="ticket.estado === 'Resuelto'"
+                  >
+                    {{ ticket.estado }}
+                  </span>
+
+                </td>
+
+                <td>
+                  {{ ticket.agente }}
+                </td>
+
+                <td>
+                  {{ ticket.fecha }}
+                </td>
+
+              </tr>
+
+            }
+
+            @if (ticketsPaginados().length === 0) {
+
+              <tr>
+
+                <td
+                  colspan="7"
+                  style="text-align: center; padding: 30px;"
+                >
+                  No se encontraron tickets
+                </td>
+
+              </tr>
+
+            }
+
+          </tbody>
+
         </table>
 
       </div>
 
       <div class="pagination">
-        <span>Mostrando 1 - 4 de 128 tickets</span>
+
+        <span>
+          Mostrando {{ ticketsPaginados().length }}
+          de {{ ticketsFiltrados().length }} tickets
+        </span>
 
         <div>
-          <button>‹</button>
-          <button class="active">1</button>
-          <button>2</button>
-          <button>3</button>
-          <button>...</button>
-          <button>32</button>
-          <button>›</button>
+
+          <button
+            (click)="cambiarPagina(paginaActual - 1)"
+            [disabled]="paginaActual === 1"
+          >
+            ‹
+          </button>
+
+          @for (
+            pagina of [].constructor(totalPaginas());
+            track $index
+          ) {
+
+            <button
+              [class.active]="paginaActual === $index + 1"
+              (click)="cambiarPagina($index + 1)"
+            >
+              {{ $index + 1 }}
+            </button>
+
+          }
+
+          <button
+            (click)="cambiarPagina(paginaActual + 1)"
+            [disabled]="paginaActual === totalPaginas()"
+          >
+            ›
+          </button>
+
         </div>
+
       </div>
 
     </section>
 
   </main>
-@if (mostrarFormulario) {
 
-  <div class="modal">
+  @if (mostrarFormulario) {
 
-    <div class="modal-content">
+    <div class="modal">
 
-      <div class="modal-header">
+      <div class="modal-content">
 
-        <div>
-          <h2>Nuevo ticket</h2>
-          <p>Registra una nueva solicitud de soporte</p>
+        <div class="modal-header">
+
+          <div>
+            <h2>Nuevo ticket</h2>
+            <p>Registra una nueva solicitud de soporte</p>
+          </div>
+
+          <button
+            class="close"
+            (click)="cerrarFormulario()"
+          >
+            ×
+          </button>
+
         </div>
 
-        <button class="close" (click)="cerrarFormulario()">×</button>
+        <div class="form">
 
-      </div>
+          <label>Título</label>
 
-      <div class="form">
+          <input
+            type="text"
+            [(ngModel)]="nuevoTicket.titulo"
+            placeholder="Ej. No puedo iniciar sesión"
+          >
 
-        <label>Título</label>
+          <label>Descripción</label>
 
-        <input
-          type="text"
-          [(ngModel)]="nuevoTicket.titulo"
-          placeholder="Ej. No puedo iniciar sesión">
+          <textarea
+            [(ngModel)]="nuevoTicket.descripcion"
+            placeholder="Describe el problema"
+          ></textarea>
 
-        <label>Descripción</label>
+          <label>Solicitante</label>
 
-        <textarea
-          [(ngModel)]="nuevoTicket.descripcion"
-          placeholder="Describe el problema">
-        </textarea>
+          <input
+            type="text"
+            [(ngModel)]="nuevoTicket.solicitante"
+            placeholder="Nombre del solicitante"
+          >
 
-        <label>Solicitante</label>
+          <label>Prioridad</label>
 
-        <input
-          type="text"
-          [(ngModel)]="nuevoTicket.solicitante"
-          placeholder="Nombre del solicitante">
+          <select [(ngModel)]="nuevoTicket.prioridad">
 
-        <label>Prioridad</label>
+            <option value="Alta">Alta</option>
+            <option value="Media">Media</option>
+            <option value="Baja">Baja</option>
 
-        <select [(ngModel)]="nuevoTicket.prioridad">
+          </select>
 
-          <option>Alta</option>
-          <option>Media</option>
-          <option>Baja</option>
+        </div>
 
-        </select>
+        <div class="modal-actions">
 
-      </div>
+          <button
+            class="cancel"
+            (click)="cerrarFormulario()"
+          >
+            Cancelar
+          </button>
 
-      <div class="modal-actions">
+          <button
+            class="create"
+            (click)="crearTicket()"
+          >
+            Crear ticket
+          </button>
 
-        <button
-          class="cancel"
-          (click)="cerrarFormulario()">
-          Cancelar
-        </button>
-
-        <button
-          class="create"
-          (click)="crearTicket()">
-          Crear ticket
-        </button>
+        </div>
 
       </div>
 
     </div>
 
-  </div>
+  }
 
-}
 </div>
