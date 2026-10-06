@@ -1,0 +1,249 @@
+<div class="sildra">
+
+  <header class="topbar">
+    <div class="logo">
+      <div class="logo-icon">S</div>
+      <div>
+        <h1>Sildra Support</h1>
+        <span>Centro de soporte</span>
+      </div>
+    </div>
+
+    <div class="user-area">
+      <span>Agente</span>
+      <div class="avatar">A</div>
+    </div>
+  </header>
+
+  <main class="content">
+
+    <div class="page-header">
+      <div>
+        <h2>Bandeja de tickets</h2>
+        <p>Gestiona y da seguimiento a las solicitudes de soporte</p>
+      </div>
+<button class="new-ticket" (click)="abrirFormulario()">
+  + Nuevo ticket
+</button>
+    </div>
+
+    <section class="counters">
+
+      <div class="counter">
+        <span class="counter-title">Todos</span>
+        <strong>128</strong>
+      </div>
+
+      <div class="counter">
+        <span class="counter-title">Abiertos</span>
+        <strong>42</strong>
+      </div>
+
+      <div class="counter">
+        <span class="counter-title">En progreso</span>
+        <strong>31</strong>
+      </div>
+
+      <div class="counter">
+        <span class="counter-title">Resueltos</span>
+        <strong>55</strong>
+      </div>
+
+    </section>
+
+    <section class="filters">
+
+      <div class="search">
+        <span>⌕</span>
+        <input
+          type="text"
+          placeholder="Buscar tickets..."
+        >
+      </div>
+
+      <select>
+        <option>Todos los estados</option>
+        <option>Abierto</option>
+        <option>En progreso</option>
+        <option>Resuelto</option>
+      </select>
+
+      <select>
+        <option>Todas las prioridades</option>
+        <option>Alta</option>
+        <option>Media</option>
+        <option>Baja</option>
+      </select>
+
+      <select>
+        <option>Todos los agentes</option>
+        <option>Agente 1</option>
+        <option>Agente 2</option>
+      </select>
+
+    </section>
+
+    <section class="tickets-card">
+
+      <div class="card-header">
+        <div>
+          <h3>Tickets</h3>
+          <span>128 solicitudes encontradas</span>
+        </div>
+      </div>
+
+      <div class="table-container">
+
+        <table>
+
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Ticket</th>
+              <th>Solicitante</th>
+              <th>Prioridad</th>
+              <th>Estado</th>
+              <th>Agente</th>
+              <th>Fecha</th>
+            </tr>
+          </thead>
+
+       <tbody>
+
+  @for (ticket of tickets; track ticket.id) {
+
+    <tr>
+
+      <td>{{ ticket.id }}</td>
+
+      <td>
+        <strong>{{ ticket.titulo }}</strong>
+        <small>{{ ticket.descripcion }}</small>
+      </td>
+
+      <td>{{ ticket.solicitante }}</td>
+
+      <td>
+        <span
+          class="priority"
+          [class.high]="ticket.prioridad === 'Alta'"
+          [class.medium]="ticket.prioridad === 'Media'"
+          [class.low]="ticket.prioridad === 'Baja'">
+          {{ ticket.prioridad }}
+        </span>
+      </td>
+
+      <td>
+        <span
+          class="status"
+          [class.open]="ticket.estado === 'Abierto'"
+          [class.progress]="ticket.estado === 'En progreso'"
+          [class.resolved]="ticket.estado === 'Resuelto'">
+          {{ ticket.estado }}
+        </span>
+      </td>
+
+      <td>{{ ticket.agente }}</td>
+
+      <td>{{ ticket.fecha }}</td>
+
+    </tr>
+
+  }
+
+</tbody>
+        </table>
+
+      </div>
+
+      <div class="pagination">
+        <span>Mostrando 1 - 4 de 128 tickets</span>
+
+        <div>
+          <button>‹</button>
+          <button class="active">1</button>
+          <button>2</button>
+          <button>3</button>
+          <button>...</button>
+          <button>32</button>
+          <button>›</button>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+@if (mostrarFormulario) {
+
+  <div class="modal">
+
+    <div class="modal-content">
+
+      <div class="modal-header">
+
+        <div>
+          <h2>Nuevo ticket</h2>
+          <p>Registra una nueva solicitud de soporte</p>
+        </div>
+
+        <button class="close" (click)="cerrarFormulario()">×</button>
+
+      </div>
+
+      <div class="form">
+
+        <label>Título</label>
+
+        <input
+          type="text"
+          [(ngModel)]="nuevoTicket.titulo"
+          placeholder="Ej. No puedo iniciar sesión">
+
+        <label>Descripción</label>
+
+        <textarea
+          [(ngModel)]="nuevoTicket.descripcion"
+          placeholder="Describe el problema">
+        </textarea>
+
+        <label>Solicitante</label>
+
+        <input
+          type="text"
+          [(ngModel)]="nuevoTicket.solicitante"
+          placeholder="Nombre del solicitante">
+
+        <label>Prioridad</label>
+
+        <select [(ngModel)]="nuevoTicket.prioridad">
+
+          <option>Alta</option>
+          <option>Media</option>
+          <option>Baja</option>
+
+        </select>
+
+      </div>
+
+      <div class="modal-actions">
+
+        <button
+          class="cancel"
+          (click)="cerrarFormulario()">
+          Cancelar
+        </button>
+
+        <button
+          class="create"
+          (click)="crearTicket()">
+          Crear ticket
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+}
+</div>
