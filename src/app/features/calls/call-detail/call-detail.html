@@ -1,197 +1,329 @@
 
-<div class="call-page">
+<div class="min-h-screen bg-slate-50 px-4 py-6 text-slate-800 sm:px-6 lg:px-8">
+  <div class="mx-auto max-w-7xl">
 
-  <header class="page-heading">
-    <div>
-      <a routerLink="/dashboard" class="back-link">
-        ← Volver a tickets
-      </a>
+    <!-- Encabezado -->
+    <header class="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+      <div>
+        <a
+          routerLink="/dashboard"
+          class="mb-4 inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-indigo-600">
+          <span>←</span>
+          Volver a tickets
+        </a>
 
-      <div class="eyebrow">CENTRO DE SOPORTE / LLAMADAS</div>
-      <h1>Detalle de llamada</h1>
-      <p>Consulta la información y gestiona la llamada del cliente.</p>
-    </div>
+        <div class="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-indigo-600">
+          Centro de soporte / Llamadas
+        </div>
 
-    <span class="call-id">#{{ llamada.id }}</span>
-  </header>
+        <h1 class="text-3xl font-bold tracking-tight text-slate-900">
+          Detalle de llamada
+        </h1>
 
-  <section class="call-banner">
-    <div class="caller-avatar">
-      {{ llamada.cliente.charAt(0) }}
-    </div>
+        <p class="mt-2 text-sm text-slate-500">
+          Consulta la información y gestiona la llamada del cliente.
+        </p>
+      </div>
 
-    <div class="caller-info">
-      <span class="section-label">CLIENTE</span>
-      <h2>{{ llamada.cliente }}</h2>
-      <p>{{ llamada.telefono }}</p>
-      <p>{{ llamada.email }}</p>
-    </div>
-
-    <div class="call-status">
-      <span
-        class="status-dot"
-        [class.finished]="llamadaFinalizada">
+      <span class="w-fit rounded-xl border border-slate-200 bg-white px-4 py-2 font-mono text-sm font-semibold text-slate-600 shadow-sm">
+        #{{ llamada.id }}
       </span>
-      {{ llamada.estado }}
-      <small>{{ llamada.direccion }}</small>
-    </div>
-  </section>
+    </header>
 
-  <div class="call-layout">
+    <!-- Banner del cliente -->
+    <section class="mb-6 flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:p-6">
 
-    <main class="main-column">
+      <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-indigo-100 text-2xl font-bold text-indigo-700">
+        {{ llamada.cliente.charAt(0) }}
+      </div>
 
-      <section class="panel">
-        <div class="panel-heading">
-          <div>
-            <span class="section-label">INFORMACIÓN</span>
-            <h2>Resumen de la llamada</h2>
-          </div>
+      <div class="min-w-0 flex-1">
+        <span class="text-xs font-bold uppercase tracking-widest text-slate-400">
+          Cliente
+        </span>
+
+        <h2 class="mt-1 text-xl font-bold text-slate-900">
+          {{ llamada.cliente }}
+        </h2>
+
+        <div class="mt-2 flex flex-col gap-1 text-sm text-slate-500 sm:flex-row sm:flex-wrap sm:gap-x-5">
+          <p>{{ llamada.telefono }}</p>
+          <p class="break-all">{{ llamada.email }}</p>
+        </div>
+      </div>
+
+      <div class="flex w-fit flex-col gap-2 rounded-xl bg-slate-50 px-4 py-3 sm:items-end">
+        <div class="flex items-center gap-2 text-sm font-semibold text-slate-700">
+          <span
+            class="h-2.5 w-2.5 rounded-full"
+            [ngClass]="llamadaFinalizada ? 'bg-emerald-500' : 'bg-amber-500'">
+          </span>
+          {{ llamada.estado }}
         </div>
 
-        <div class="info-grid">
+        <span class="text-xs text-slate-500">
+          {{ llamada.direccion }}
+        </span>
+      </div>
 
-          <div class="info-item">
-            <span>Asunto</span>
-            <strong>{{ llamada.asunto }}</strong>
+    </section>
+
+    <!-- Contenido principal -->
+    <div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
+
+      <main class="flex min-w-0 flex-col gap-6 lg:col-span-2">
+
+        <!-- Resumen de llamada -->
+        <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+
+          <div class="mb-6 border-b border-slate-100 pb-4">
+            <span class="text-xs font-bold uppercase tracking-widest text-indigo-600">
+              Información
+            </span>
+            <h2 class="mt-1 text-lg font-bold text-slate-900">
+              Resumen de la llamada
+            </h2>
           </div>
 
-          <div class="info-item">
-            <span>Agente asignado</span>
-            <strong>{{ llamada.agente }}</strong>
+          <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+
+            <div class="rounded-xl bg-slate-50 p-4">
+              <span class="text-xs font-medium text-slate-500">Asunto</span>
+              <p class="mt-2 break-words text-sm font-semibold text-slate-800">
+                {{ llamada.asunto }}
+              </p>
+            </div>
+
+            <div class="rounded-xl bg-slate-50 p-4">
+              <span class="text-xs font-medium text-slate-500">Agente asignado</span>
+              <p class="mt-2 break-words text-sm font-semibold text-slate-800">
+                {{ llamada.agente }}
+              </p>
+            </div>
+
+            <div class="rounded-xl bg-slate-50 p-4">
+              <span class="text-xs font-medium text-slate-500">Hora de inicio</span>
+              <p class="mt-2 text-sm font-semibold text-slate-800">
+                {{ llamada.inicio }}
+              </p>
+            </div>
+
+            <div class="rounded-xl bg-slate-50 p-4">
+              <span class="text-xs font-medium text-slate-500">Duración registrada</span>
+              <p class="mt-2 text-sm font-semibold text-slate-800">
+                {{ llamada.duracion }}
+              </p>
+            </div>
+
+            <div class="rounded-xl bg-slate-50 p-4">
+              <span class="text-xs font-medium text-slate-500">Categoría</span>
+              <p class="mt-2 text-sm font-semibold text-slate-800">
+                {{ llamada.categoria }}
+              </p>
+            </div>
+
+            <div class="rounded-xl bg-slate-50 p-4">
+              <span class="text-xs font-medium text-slate-500">Prioridad</span>
+              <p class="mt-2 inline-flex rounded-full bg-rose-50 px-3 py-1 text-sm font-semibold text-rose-700">
+                {{ llamada.prioridad }}
+              </p>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- Notas -->
+        <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+
+          <div class="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+            <div>
+              <span class="text-xs font-bold uppercase tracking-widest text-indigo-600">
+                Seguimiento
+              </span>
+              <h2 class="mt-1 text-lg font-bold text-slate-900">
+                Notas de la llamada
+              </h2>
+            </div>
+
+            <span class="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
+              {{ notas.length }} notas
+            </span>
           </div>
 
-          <div class="info-item">
-            <span>Hora de inicio</span>
-            <strong>{{ llamada.inicio }}</strong>
-          </div>
+          <form class="space-y-3" (ngSubmit)="agregarNota()">
 
-          <div class="info-item">
-            <span>Duración registrada</span>
-            <strong>{{ llamada.duracion }}</strong>
-          </div>
+            <label for="nuevaNota" class="block text-sm font-semibold text-slate-700">
+              Añadir una nota
+            </label>
 
-          <div class="info-item">
-            <span>Categoría</span>
-            <strong>{{ llamada.categoria }}</strong>
-          </div>
+            <textarea
+              id="nuevaNota"
+              name="nuevaNota"
+              [(ngModel)]="nuevaNota"
+              placeholder="Escribe aquí los detalles importantes..."
+              rows="3"
+              class="w-full resize-y rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+            </textarea>
 
-          <div class="info-item">
-            <span>Prioridad</span>
-            <strong class="priority">{{ llamada.prioridad }}</strong>
-          </div>
+            <div class="flex flex-col gap-3 border-b border-slate-100 pb-5 sm:flex-row sm:items-center sm:justify-between">
+              <small class="text-xs text-slate-400">
+                Las notas se muestran en esta sesión.
+              </small>
 
-        </div>
-      </section>
+              <button
+                type="submit"
+                class="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-200">
+                <span>+</span>
+                Añadir nota
+              </button>
+            </div>
+          </form>
 
-      <section class="panel">
-        <div class="panel-heading">
-          <div>
-            <span class="section-label">SEGUIMIENTO</span>
-            <h2>Notas de la llamada</h2>
-          </div>
+          <!-- Historial de notas -->
+          <div class="mt-6 space-y-6">
 
-          <span class="note-count">{{ notas.length }} notas</span>
-        </div>
+            <article
+              *ngFor="let nota of notas"
+              class="relative flex gap-4">
 
-        <form class="note-form" (ngSubmit)="agregarNota()">
-          <label for="nuevaNota">Añadir una nota</label>
-
-          <textarea
-            id="nuevaNota"
-            name="nuevaNota"
-            [(ngModel)]="nuevaNota"
-            placeholder="Escribe aquí los detalles importantes..."
-            rows="3">
-          </textarea>
-
-          <div class="note-form-footer">
-            <small>Las notas se muestran en esta sesión.</small>
-
-            <button type="submit" class="primary-button">
-              + Añadir nota
-            </button>
-          </div>
-        </form>
-
-        <div class="timeline">
-          <article class="note" *ngFor="let nota of notas">
-            <div class="timeline-marker"></div>
-
-            <div class="note-content">
-              <div class="note-meta">
-                <strong>{{ nota.autor }}</strong>
-                <time>{{ nota.hora }}</time>
+              <div class="flex shrink-0 flex-col items-center">
+                <div class="h-3 w-3 rounded-full border-2 border-indigo-600 bg-white"></div>
+                <div class="mt-2 w-px flex-1 bg-slate-200"></div>
               </div>
 
-              <p>{{ nota.texto }}</p>
+              <div class="min-w-0 flex-1 rounded-xl border border-slate-100 bg-slate-50 p-4">
+                <div class="mb-2 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                  <strong class="text-sm font-semibold text-slate-800">
+                    {{ nota.autor }}
+                  </strong>
+
+                  <time class="text-xs text-slate-400">
+                    {{ nota.hora }}
+                  </time>
+                </div>
+
+                <p class="whitespace-pre-wrap break-words text-sm leading-6 text-slate-600">
+                  {{ nota.texto }}
+                </p>
+              </div>
+
+            </article>
+
+            <div *ngIf="notas.length === 0" class="rounded-xl border border-dashed border-slate-200 p-6 text-center">
+              <p class="text-sm text-slate-500">
+                Todavía no hay notas registradas.
+              </p>
             </div>
-          </article>
-        </div>
-      </section>
 
-    </main>
+          </div>
+        </section>
 
-    <aside class="side-column">
+      </main>
 
-      <section class="panel">
-        <span class="section-label">ACCIONES</span>
-        <h2>Gestionar llamada</h2>
+      <!-- Panel lateral -->
+      <aside class="flex min-w-0 flex-col gap-6">
 
-        <p class="action-description">
-          Selecciona la acción que deseas realizar.
-        </p>
+        <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
 
-        <a
-          class="action-button transfer-button"
-          routerLink="/llamadas/transferencia"
-          [class.disabled-link]="llamadaFinalizada"
-          [attr.aria-disabled]="llamadaFinalizada">
-          <span class="action-icon">⇄</span>
-          <span>
-            <strong>Transferir llamada</strong>
-            <small>Derivar a otro agente</small>
+          <span class="text-xs font-bold uppercase tracking-widest text-indigo-600">
+            Acciones
           </span>
-          <span class="action-arrow">›</span>
-        </a>
 
-        <a
-          class="action-button"
-          routerLink="/clasificacion">
-          <span class="action-icon">▤</span>
-          <span>
-            <strong>Revisar clasificación</strong>
-            <small>Ver categoría y prioridad</small>
-          </span>
-          <span class="action-arrow">›</span>
-        </a>
+          <h2 class="mt-1 text-lg font-bold text-slate-900">
+            Gestionar llamada
+          </h2>
 
-        <button
-          type="button"
-          class="finish-button"
-          [disabled]="llamadaFinalizada"
-          (click)="finalizarLlamada()">
-          {{ llamadaFinalizada ? 'Llamada finalizada' : 'Finalizar llamada' }}
-        </button>
-
-        <p class="finish-message" *ngIf="llamadaFinalizada">
-          La llamada se ha marcado como finalizada.
-        </p>
-      </section>
-
-      <section class="panel tip-panel">
-        <div class="tip-icon">i</div>
-        <div>
-          <h3>Información importante</h3>
-          <p>
-            Registra los detalles relevantes antes de finalizar la llamada
-            para mantener un historial claro de la atención.
+          <p class="mt-2 mb-5 text-sm leading-6 text-slate-500">
+            Selecciona la acción que deseas realizar.
           </p>
-        </div>
-      </section>
 
-    </aside>
+          <!-- Transferir -->
+          <a
+            [routerLink]="llamadaFinalizada ? null : '/llamadas/transferencia'"
+            class="mb-3 flex items-center gap-3 rounded-xl border border-slate-200 p-4 transition hover:border-indigo-300 hover:bg-indigo-50"
+            [ngClass]="llamadaFinalizada ? 'pointer-events-none opacity-50' : ''"
+            [attr.aria-disabled]="llamadaFinalizada">
 
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-xl text-indigo-700">
+              ⇄
+            </span>
+
+            <span class="min-w-0 flex-1">
+              <strong class="block text-sm font-semibold text-slate-800">
+                Transferir llamada
+              </strong>
+              <small class="mt-1 block text-xs text-slate-500">
+                Derivar a otro agente
+              </small>
+            </span>
+
+            <span class="text-xl text-slate-400">›</span>
+          </a>
+
+          <!-- Clasificación -->
+          <a
+            routerLink="/clasificacion"
+            class="mb-5 flex items-center gap-3 rounded-xl border border-slate-200 p-4 transition hover:border-indigo-300 hover:bg-indigo-50">
+
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-xl text-slate-700">
+              ▤
+            </span>
+
+            <span class="min-w-0 flex-1">
+              <strong class="block text-sm font-semibold text-slate-800">
+                Revisar clasificación
+              </strong>
+              <small class="mt-1 block text-xs text-slate-500">
+                Ver categoría y prioridad
+              </small>
+            </span>
+
+            <span class="text-xl text-slate-400">›</span>
+          </a>
+
+          <!-- Finalizar -->
+          <button
+            type="button"
+            class="w-full rounded-xl px-4 py-3 text-sm font-semibold transition focus:outline-none focus:ring-4"
+            [ngClass]="llamadaFinalizada
+              ? 'cursor-not-allowed bg-slate-100 text-slate-400'
+              : 'bg-rose-600 text-white hover:bg-rose-700 focus:ring-rose-200'"
+            [disabled]="llamadaFinalizada"
+            (click)="finalizarLlamada()">
+
+            {{ llamadaFinalizada ? '✓ Llamada finalizada' : 'Finalizar llamada' }}
+          </button>
+
+          <p
+            *ngIf="llamadaFinalizada"
+            class="mt-3 rounded-lg bg-emerald-50 p-3 text-sm leading-5 text-emerald-700">
+            La llamada se ha marcado como finalizada.
+          </p>
+
+        </section>
+
+        <!-- Información importante -->
+        <section class="flex gap-3 rounded-2xl border border-blue-100 bg-blue-50 p-5">
+
+          <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100 font-bold text-blue-700">
+            i
+          </div>
+
+          <div>
+            <h3 class="text-sm font-bold text-blue-900">
+              Información importante
+            </h3>
+
+            <p class="mt-2 text-sm leading-6 text-blue-800">
+              Registra los detalles relevantes antes de finalizar la llamada
+              para mantener un historial claro de la atención.
+            </p>
+          </div>
+
+        </section>
+
+      </aside>
+
+    </div>
   </div>
-
 </div>

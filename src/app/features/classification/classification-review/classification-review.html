@@ -1,1 +1,317 @@
-<p>classification-review works!</p>
+
+<section class="min-h-screen bg-slate-50 px-4 py-6 text-slate-800 sm:px-6 lg:px-8">
+  <div class="mx-auto max-w-7xl">
+
+    <!-- Encabezado -->
+    <header class="mb-8 flex items-center justify-between gap-4">
+      <div>
+        <span class="text-xs font-bold uppercase tracking-[0.18em] text-indigo-600">
+          Control de calidad
+        </span>
+
+        <h1 class="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+          Revisión de clasificación
+        </h1>
+
+        <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+          Verifica y corrige la categoría, prioridad y motivo de cada caso.
+        </p>
+      </div>
+
+      <div class="hidden h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-2xl font-bold text-emerald-700 sm:flex">
+        ✓
+      </div>
+    </header>
+
+    <!-- Estadísticas -->
+    <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+
+      <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="flex items-center justify-between gap-3">
+          <span class="text-sm font-medium text-slate-500">Total de casos</span>
+          <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-lg text-indigo-600">
+            ▤
+          </span>
+        </div>
+
+        <strong class="mt-3 block text-3xl font-bold text-slate-900">
+          {{ clasificaciones.length }}
+        </strong>
+
+        <p class="mt-1 text-xs text-slate-400">Casos registrados</p>
+      </article>
+
+      <article class="rounded-2xl border border-amber-200 bg-white p-5 shadow-sm">
+        <div class="flex items-center justify-between gap-3">
+          <span class="text-sm font-medium text-slate-500">Pendientes de revisión</span>
+          <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 text-lg text-amber-600">
+            ◷
+          </span>
+        </div>
+
+        <strong class="mt-3 block text-3xl font-bold text-amber-600">
+          {{ clasificaciones.filter(c => c.estado === 'Pendiente').length }}
+        </strong>
+
+        <p class="mt-1 text-xs text-slate-400">Necesitan atención</p>
+      </article>
+
+      <article class="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
+        <div class="flex items-center justify-between gap-3">
+          <span class="text-sm font-medium text-slate-500">Casos revisados</span>
+          <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-lg text-emerald-600">
+            ✓
+          </span>
+        </div>
+
+        <strong class="mt-3 block text-3xl font-bold text-emerald-600">
+          {{ clasificaciones.filter(c => c.estado === 'Revisada').length }}
+        </strong>
+
+        <p class="mt-1 text-xs text-slate-400">Revisiones completadas</p>
+      </article>
+
+    </div>
+
+    <!-- Lista y formulario -->
+    <div class="grid grid-cols-1 items-start gap-6 xl:grid-cols-2">
+
+      <!-- Lista de casos -->
+      <section class="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+
+        <div class="border-b border-slate-100 p-5 sm:p-6">
+          <h2 class="text-lg font-bold text-slate-900">Casos clasificados</h2>
+          <p class="mt-1 text-sm text-slate-500">
+            Selecciona un caso para revisar sus datos.
+          </p>
+
+          <div class="mt-5 flex flex-col gap-3 sm:flex-row">
+
+            <input
+              type="text"
+              [(ngModel)]="busqueda"
+              placeholder="Buscar por cliente, ID o asunto..."
+              aria-label="Buscar clasificación"
+              class="min-w-0 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-100"
+            />
+
+            <select
+              [(ngModel)]="filtroEstado"
+              aria-label="Filtrar por estado"
+              class="rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-700 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+              <option value="Todos">Todos los estados</option>
+              <option value="Pendiente">Pendientes</option>
+              <option value="Revisada">Revisadas</option>
+            </select>
+
+          </div>
+        </div>
+
+        <div class="space-y-3 p-4 sm:p-5">
+
+          <button
+            type="button"
+            *ngFor="let item of clasificacionesFiltradas"
+            (click)="seleccionarClasificacion(item)"
+            class="w-full rounded-xl border p-4 text-left transition focus:outline-none focus:ring-4 focus:ring-indigo-100"
+            [ngClass]="clasificacionSeleccionada?.id === item.id
+              ? 'border-indigo-400 bg-indigo-50 shadow-sm'
+              : 'border-slate-200 bg-white hover:border-indigo-200 hover:bg-slate-50'">
+
+            <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <span class="font-mono text-xs font-semibold text-slate-500">
+                Caso #{{ item.id }}
+              </span>
+
+              <span
+                class="rounded-full px-3 py-1 text-xs font-semibold"
+                [ngClass]="item.estado === 'Pendiente'
+                  ? 'bg-amber-100 text-amber-700'
+                  : 'bg-emerald-100 text-emerald-700'">
+                {{ item.estado }}
+              </span>
+            </div>
+
+            <strong class="block text-sm font-bold text-slate-900">
+              {{ item.cliente }}
+            </strong>
+
+            <span class="mt-1 block break-words text-sm leading-5 text-slate-500">
+              {{ item.asunto }}
+            </span>
+
+            <div class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3">
+              <span class="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-600">
+                {{ item.categoria }}
+              </span>
+
+              <span
+                class="rounded-full px-3 py-1 text-xs font-bold"
+                [ngClass]="{
+                  'bg-rose-100 text-rose-700': item.prioridad === 'Alta',
+                  'bg-amber-100 text-amber-700': item.prioridad === 'Media',
+                  'bg-sky-100 text-sky-700': item.prioridad === 'Baja'
+                }">
+                Prioridad {{ item.prioridad }}
+              </span>
+            </div>
+
+          </button>
+
+          <div
+            *ngIf="clasificacionesFiltradas.length === 0"
+            class="rounded-xl border border-dashed border-slate-200 px-4 py-12 text-center">
+            <div class="mb-3 text-3xl text-slate-300">⌕</div>
+            <p class="font-semibold text-slate-700">No se encontraron casos</p>
+            <p class="mt-1 text-sm text-slate-400">
+              Prueba con otro término o cambia el filtro.
+            </p>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Formulario de revisión -->
+      <section class="min-w-0 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+
+        <ng-container *ngIf="clasificacionSeleccionada; else emptyReview">
+
+          <div class="mb-6 border-b border-slate-100 pb-4">
+            <span class="text-xs font-bold uppercase tracking-widest text-indigo-600">
+              Caso #{{ clasificacionSeleccionada.id }}
+            </span>
+
+            <h2 class="mt-2 text-lg font-bold text-slate-900">
+              Editar clasificación
+            </h2>
+
+            <p class="mt-1 text-sm text-slate-500">
+              Comprueba la información antes de guardar.
+            </p>
+          </div>
+
+          <!-- Resumen del cliente -->
+          <div class="mb-6 flex items-center gap-4 rounded-xl bg-slate-50 p-4">
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-lg font-bold text-indigo-700">
+              {{ clasificacionSeleccionada.cliente.charAt(0) }}
+            </div>
+
+            <div class="min-w-0">
+              <strong class="block break-words text-sm font-bold text-slate-900">
+                {{ clasificacionSeleccionada.cliente }}
+              </strong>
+
+              <span class="mt-1 block break-words text-sm text-slate-500">
+                {{ clasificacionSeleccionada.asunto }}
+              </span>
+            </div>
+          </div>
+
+          <form (ngSubmit)="guardarRevision()" class="space-y-5">
+
+            <div>
+              <label for="categoria" class="mb-2 block text-sm font-semibold text-slate-700">
+                Categoría
+              </label>
+
+              <select
+                id="categoria"
+                name="categoria"
+                [(ngModel)]="clasificacionSeleccionada.categoria"
+                required
+                class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                <option value="Soporte técnico">Soporte técnico</option>
+                <option value="Facturación">Facturación</option>
+                <option value="Gestión de cuenta">Gestión de cuenta</option>
+                <option value="Ventas">Ventas</option>
+                <option value="Reclamaciones">Reclamaciones</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="prioridad" class="mb-2 block text-sm font-semibold text-slate-700">
+                Prioridad
+              </label>
+
+              <select
+                id="prioridad"
+                name="prioridad"
+                [(ngModel)]="clasificacionSeleccionada.prioridad"
+                required
+                class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                <option value="Alta">Alta</option>
+                <option value="Media">Media</option>
+                <option value="Baja">Baja</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="motivo" class="mb-2 block text-sm font-semibold text-slate-700">
+                Motivo de clasificación
+              </label>
+
+              <textarea
+                id="motivo"
+                name="motivo"
+                [(ngModel)]="clasificacionSeleccionada.motivo"
+                rows="4"
+                required
+                placeholder="Describe el motivo..."
+                class="w-full resize-y rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm leading-6 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+              </textarea>
+            </div>
+
+            <div class="flex flex-col-reverse gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:justify-end">
+
+              <button
+                type="button"
+                (click)="cancelarRevision()"
+                class="rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-100">
+                Cancelar
+              </button>
+
+              <button
+                type="submit"
+                class="rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-200">
+                Guardar revisión
+              </button>
+
+            </div>
+
+          </form>
+        </ng-container>
+
+        <!-- Estado vacío -->
+        <ng-template #emptyReview>
+          <div class="flex min-h-80 flex-col items-center justify-center py-12 text-center">
+            <div class="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50 text-3xl text-indigo-600">
+              ☷
+            </div>
+
+            <h3 class="text-lg font-bold text-slate-900">
+              Selecciona un caso
+            </h3>
+
+            <p class="mt-2 max-w-xs text-sm leading-6 text-slate-500">
+              Elige un caso de la lista para revisar o corregir su clasificación.
+            </p>
+          </div>
+        </ng-template>
+
+      </section>
+
+    </div>
+
+    <!-- Mensaje de confirmación -->
+    <div
+      *ngIf="mensaje"
+      role="status"
+      class="mt-6 flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-emerald-800">
+      <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-100 font-bold">
+        ✓
+      </span>
+      {{ mensaje }}
+    </div>
+
+  </div>
+</section>

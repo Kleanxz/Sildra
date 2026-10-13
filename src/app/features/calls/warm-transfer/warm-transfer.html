@@ -1,1 +1,318 @@
-<p>warm-transfer works!</p>
+
+<div class="mx-auto w-full max-w-[1450px] p-[30px] font-[Arial,Helvetica,sans-serif] text-[#172033] max-[650px]:px-[14px] max-[650px]:py-[18px]">
+
+  <header class="mb-[25px] flex items-end justify-between gap-5 max-[650px]:flex-col max-[650px]:items-start">
+    <div>
+      <a routerLink="/llamadas/detalle"
+         class="mb-[22px] block w-fit text-xs font-semibold text-[#3157d5] no-underline hover:underline">
+        ← Volver a detalles de llamadas
+      </a>
+
+      <span class="block text-[10px] font-extrabold tracking-[1.2px] text-[#788399]">
+        CENTRO DE SOPORTE / TRANSFERENCIAS
+      </span>
+
+      <h1 class="my-2 text-[28px] font-bold tracking-[-0.7px] max-[650px]:text-[23px]">
+        Transferencia cálida entrante
+      </h1>
+
+      <p class="m-0 text-[13px] leading-[1.7] text-[#788399]">
+        Coordina la atención con otro agente antes de transferir la llamada.
+      </p>
+    </div>
+
+    <span class="shrink-0 rounded-lg bg-[#edf1ff] px-[13px] py-[9px] text-xs font-bold text-[#3157d5]">
+      #{{ llamada.id }}
+    </span>
+  </header>
+
+  <section class="mb-[22px] flex items-center gap-[17px] rounded-[13px] border border-[#e3e9f2] bg-[linear-gradient(110deg,#fff_55%,#f1f4ff)] p-[22px] max-[650px]:flex-wrap max-[650px]:p-4">
+
+    <div class="grid h-[55px] w-[55px] shrink-0 place-items-center rounded-[14px] bg-[#e5eaff] text-[25px] text-[#3157d5]">
+      ☎
+    </div>
+
+    <div class="min-w-0 flex-1 max-[650px]:basis-[calc(100%-75px)]">
+      <span class="block text-[10px] font-extrabold tracking-[1.2px] text-[#788399]">
+        LLAMADA ENTRANTE
+      </span>
+      <h2 class="my-1.5 text-lg font-bold">{{ llamada.cliente }}</h2>
+      <p class="m-0 break-words text-xs text-[#788399]">
+        {{ llamada.telefono }} · {{ llamada.email }}
+      </p>
+    </div>
+
+    <div class="inline-flex items-center gap-2 rounded-lg bg-[#e8f8ef] px-3 py-[9px] text-[11px] font-bold text-[#218653]">
+      <span class="h-2 w-2 rounded-full bg-[#22a568]"></span>
+      {{ estado }}
+    </div>
+  </section>
+
+  <div class="grid grid-cols-[minmax(0,1fr)_320px] items-start gap-[22px] max-[1000px]:grid-cols-1">
+
+    <main class="grid min-w-0 gap-5">
+
+      <!-- PASO 1: INFORMACIÓN DE LA LLAMADA -->
+      <section class="min-w-0 rounded-xl border border-[#e5e8ef] bg-white p-[23px] shadow-[0_3px_12px_rgb(23_32_51_/_3%)] max-[650px]:p-[17px]">
+
+        <div class="mb-[22px] flex items-center justify-between gap-3">
+          <div>
+            <span class="block text-[10px] font-extrabold tracking-[1.2px] text-[#788399]">PASO 1</span>
+            <h2 class="mt-[7px] text-base font-bold">Información de la llamada</h2>
+          </div>
+          <span class="grid h-[35px] w-[35px] shrink-0 place-items-center rounded-[10px] bg-[#edf1ff] text-xs font-extrabold text-[#3157d5]">01</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-x-[18px] gap-y-[23px] max-[650px]:grid-cols-1 max-[650px]:gap-y-[18px]">
+          <div class="flex min-w-0 flex-col gap-2">
+            <span class="text-[11px] text-[#8490a3]">Cliente</span>
+            <strong class="break-words text-xs leading-relaxed text-[#263248]">{{ llamada.cliente }}</strong>
+          </div>
+
+          <div class="flex min-w-0 flex-col gap-2">
+            <span class="text-[11px] text-[#8490a3]">Agente actual</span>
+            <strong class="break-words text-xs leading-relaxed text-[#263248]">{{ llamada.agenteActual }}</strong>
+          </div>
+
+          <div class="flex min-w-0 flex-col gap-2">
+            <span class="text-[11px] text-[#8490a3]">Motivo de la llamada</span>
+            <strong class="break-words text-xs leading-relaxed text-[#263248]">{{ llamada.asunto }}</strong>
+          </div>
+
+          <div class="flex min-w-0 flex-col gap-2">
+            <span class="text-[11px] text-[#8490a3]">Duración registrada</span>
+            <strong class="break-words text-xs leading-relaxed text-[#263248]">{{ llamada.duracion }}</strong>
+          </div>
+        </div>
+      </section>
+
+      <!-- PASO 2: SELECCIONAR AGENTE -->
+      <section class="min-w-0 rounded-xl border border-[#e5e8ef] bg-white p-[23px] shadow-[0_3px_12px_rgb(23_32_51_/_3%)] max-[650px]:p-[17px]">
+
+        <div class="mb-[22px] flex items-center justify-between gap-3">
+          <div>
+            <span class="block text-[10px] font-extrabold tracking-[1.2px] text-[#788399]">PASO 2</span>
+            <h2 class="mt-[7px] text-base font-bold">Seleccionar agente de destino</h2>
+          </div>
+          <span class="grid h-[35px] w-[35px] shrink-0 place-items-center rounded-[10px] bg-[#edf1ff] text-xs font-extrabold text-[#3157d5]">02</span>
+        </div>
+
+        <label for="agente" class="mb-[9px] block text-xs font-bold text-[#344256]">
+          Agente que recibirá la llamada
+        </label>
+
+        <select
+          id="agente"
+          name="agente"
+          [(ngModel)]="agenteSeleccionado"
+          (ngModelChange)="cambiarAgente()"
+          [disabled]="estado === 'Transferida' || estado === 'Cancelada'"
+          class="block min-h-[43px] w-full min-w-0 rounded-lg border border-[#dce3ed] bg-white p-3 text-xs text-[#334155] outline-none focus:border-[#7188e5] focus:ring-[3px] focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:bg-[#f5f7fb]">
+
+          <option value="">Selecciona un agente</option>
+
+          @for (agente of agentes; track agente.nombre) {
+            <option
+              [value]="agente.nombre"
+              [disabled]="!agente.disponible">
+              {{ agente.nombre }} — {{ agente.disponible ? 'Disponible' : 'No disponible' }}
+            </option>
+          }
+        </select>
+
+        @if (agenteDestino) {
+          <div class="mt-4 flex items-center gap-3 rounded-[9px] border border-[#e7ebf3] bg-[#f9faff] p-[14px] max-[650px]:flex-wrap">
+
+            <div class="grid h-[42px] w-[42px] shrink-0 place-items-center rounded-full bg-[#dfe7ff] text-[17px] font-extrabold text-[#3157d5]">
+              {{ agenteDestino.nombre.charAt(0) }}
+            </div>
+
+            <div class="flex min-w-0 flex-1 flex-col gap-[5px]">
+              <strong class="text-xs text-[#263248]">{{ agenteDestino.nombre }}</strong>
+              <span class="text-[11px] text-[#8490a3]">{{ agenteDestino.departamento }}</span>
+            </div>
+
+            <span
+              class="text-[10px] font-bold"
+              [class.text-[#16834e]]="agenteDestino.disponible"
+              [class.text-[#c2414b]]="!agenteDestino.disponible">
+              {{ agenteDestino.disponible ? 'Disponible' : 'No disponible' }}
+            </span>
+          </div>
+        }
+      </section>
+
+      <!-- PASO 3: RESUMEN -->
+      <section class="min-w-0 rounded-xl border border-[#e5e8ef] bg-white p-[23px] shadow-[0_3px_12px_rgb(23_32_51_/_3%)] max-[650px]:p-[17px]">
+
+        <div class="mb-[22px] flex items-center justify-between gap-3">
+          <div>
+            <span class="block text-[10px] font-extrabold tracking-[1.2px] text-[#788399]">PASO 3</span>
+            <h2 class="mt-[7px] text-base font-bold">Resumen para el agente receptor</h2>
+          </div>
+          <span class="grid h-[35px] w-[35px] shrink-0 place-items-center rounded-[10px] bg-[#edf1ff] text-xs font-extrabold text-[#3157d5]">03</span>
+        </div>
+
+        <p class="mb-5 text-xs leading-[1.7] text-[#788399]">
+          Resume el problema y las comprobaciones realizadas para que el siguiente agente pueda continuar la atención.
+        </p>
+
+        <label for="resumen" class="mb-[9px] block text-xs font-bold text-[#344256]">
+          Contexto de la llamada
+        </label>
+
+        <textarea
+          id="resumen"
+          name="resumen"
+          [(ngModel)]="resumen"
+          rows="5"
+          maxlength="1000"
+          placeholder="Escribe el resumen de la llamada..."
+          [disabled]="estado === 'Transferida' || estado === 'Cancelada'"
+          class="block min-h-[125px] w-full min-w-0 resize-y rounded-lg border border-[#dce3ed] bg-white p-3 text-xs leading-[1.7] text-[#334155] outline-none focus:border-[#7188e5] focus:ring-[3px] focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:bg-[#f5f7fb]">
+        </textarea>
+
+        <div class="mt-2.5 flex justify-between gap-3 text-[10px] text-[#8992a3] max-[650px]:flex-col max-[650px]:items-start">
+          <span>Información para el agente receptor</span>
+          <span>{{ resumen.length }}/1000</span>
+        </div>
+      </section>
+
+      @if (mensaje) {
+        <div
+          class="flex items-start gap-[11px] rounded-[9px] border p-[15px] text-xs leading-[1.7] break-words"
+          [class.border-[#bbf7d0]]="estado === 'Transferida'"
+          [class.bg-[#f0fdf4]]="estado === 'Transferida'"
+          [class.text-[#166534]]="estado === 'Transferida'"
+          [class.border-[#fecdd3]]="estado === 'Cancelada'"
+          [class.bg-[#fff1f2]]="estado === 'Cancelada'"
+          [class.text-[#be123c]]="estado === 'Cancelada'"
+          [class.border-[#dbe5ff]]="estado !== 'Transferida' && estado !== 'Cancelada'"
+          [class.bg-[#f2f5ff]]="estado !== 'Transferida' && estado !== 'Cancelada'"
+          [class.text-[#3157a5]]="estado !== 'Transferida' && estado !== 'Cancelada'">
+
+          <span class="font-extrabold">{{ estado === 'Transferida' ? '✓' : 'ℹ' }}</span>
+          <p class="m-0">{{ mensaje }}</p>
+        </div>
+      }
+    </main>
+
+    <!-- COLUMNA LATERAL -->
+    <aside class="grid min-w-0 gap-5 max-[1000px]:grid-cols-2 max-[650px]:grid-cols-1">
+
+      <section class="min-w-0 rounded-xl border border-[#e5e8ef] bg-white p-[23px] shadow-[0_3px_12px_rgb(23_32_51_/_3%)] max-[650px]:p-[17px]">
+
+        <span class="block text-[10px] font-extrabold tracking-[1.2px] text-[#788399]">PROCESO</span>
+        <h2 class="mb-6 mt-[7px] text-base font-bold">Estado de transferencia</h2>
+
+        <div class="mb-[25px] grid gap-[23px]">
+
+          <div class="flex items-start gap-3">
+            <span class="grid h-[29px] w-[29px] shrink-0 place-items-center rounded-full border border-[#bbf7d0] bg-[#dcfce7] text-[11px] font-extrabold text-[#15803d]">✓</span>
+            <div class="flex flex-col gap-[5px] pt-0.5">
+              <strong class="text-xs text-[#263248]">Llamada recibida</strong>
+              <small class="text-[10px] leading-[1.5] text-[#8490a3]">Cliente identificado</small>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-3">
+            <span
+              class="grid h-[29px] w-[29px] shrink-0 place-items-center rounded-full border border-[#dce3ed] bg-[#f8fafc] text-[11px] font-extrabold text-[#64748b]"
+              [class.border-[#bbf7d0]]="estado !== 'Preparando'"
+              [class.bg-[#dcfce7]]="estado !== 'Preparando'"
+              [class.text-[#15803d]]="estado !== 'Preparando'">
+              {{ estado !== 'Preparando' ? '✓' : '2' }}
+            </span>
+            <div class="flex flex-col gap-[5px] pt-0.5">
+              <strong class="text-xs text-[#263248]">Consulta al agente</strong>
+              <small class="text-[10px] leading-[1.5] text-[#8490a3]">
+                {{ estado === 'Preparando' ? 'Pendiente de iniciar' : 'Consulta iniciada' }}
+              </small>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-3">
+            <span
+              class="grid h-[29px] w-[29px] shrink-0 place-items-center rounded-full border border-[#dce3ed] bg-[#f8fafc] text-[11px] font-extrabold text-[#64748b]"
+              [class.border-[#bbf7d0]]="estado === 'Transferida'"
+              [class.bg-[#dcfce7]]="estado === 'Transferida'"
+              [class.text-[#15803d]]="estado === 'Transferida'">
+              {{ estado === 'Transferida' ? '✓' : '3' }}
+            </span>
+            <div class="flex flex-col gap-[5px] pt-0.5">
+              <strong class="text-xs text-[#263248]">Transferencia</strong>
+              <small class="text-[10px] leading-[1.5] text-[#8490a3]">
+                {{ estado === 'Transferida' ? 'Completada en la demostración' : 'Pendiente de confirmación' }}
+              </small>
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-[18px] flex flex-col gap-[7px] rounded-[9px] border border-[#e5eaff] bg-[#f5f7ff] p-[15px]">
+          <span class="text-[11px] text-[#8490a3]">Agente de destino</span>
+          <strong class="text-[13px] text-[#263248]">{{ agenteSeleccionado || 'Sin seleccionar' }}</strong>
+          <small class="text-[11px] text-[#788399]">{{ departamentoSeleccionado }}</small>
+        </div>
+
+        @if (estado === 'Preparando') {
+          <button
+            type="button"
+            class="min-h-[42px] w-full rounded-lg bg-[#3157d5] px-[13px] py-[11px] text-[11px] font-bold text-white transition-colors hover:bg-[#2445b6]"
+            (click)="iniciarConsulta()">
+            ⇄ Iniciar consulta
+          </button>
+        }
+
+        @if (estado === 'Consultando') {
+          <button
+            type="button"
+            class="min-h-[42px] w-full rounded-lg bg-[#3157d5] px-[13px] py-[11px] text-[11px] font-bold text-white transition-colors hover:bg-[#2445b6]"
+            (click)="completarTransferencia()">
+            ✓ Completar transferencia
+          </button>
+        }
+
+        @if (estado === 'Transferida') {
+          <div class="rounded-lg bg-[#e8f8ef] p-3 text-center text-[11px] font-bold leading-relaxed text-[#218653]">
+            ✓ Transferencia completada
+          </div>
+        }
+
+        @if (estado === 'Cancelada') {
+          <div class="rounded-lg bg-[#fff1f2] p-3 text-center text-[11px] font-bold leading-relaxed text-[#c43e48]">
+            Transferencia cancelada
+          </div>
+        }
+
+        @if (estado !== 'Transferida' && estado !== 'Cancelada') {
+          <button
+            type="button"
+            class="mt-2.5 min-h-[42px] w-full rounded-lg border border-[#f1cccc] bg-[#fff5f5] px-[13px] py-[11px] text-[11px] font-bold text-[#c43e48] transition-colors hover:bg-[#ffe9e9]"
+            (click)="cancelarTransferencia()">
+            Cancelar transferencia
+          </button>
+        }
+
+        @if (estado === 'Transferida' || estado === 'Cancelada') {
+          <button
+            type="button"
+            class="mt-2.5 min-h-[42px] w-full rounded-lg border border-[#dce3ed] bg-white px-[13px] py-[11px] text-[11px] font-bold text-[#344256] transition-colors hover:bg-[#f8fafc]"
+            (click)="reiniciarTransferencia()">
+            Nueva transferencia
+          </button>
+        }
+      </section>
+
+      <section class="flex items-start gap-3 rounded-xl border border-[#e2e8ff] bg-[#f2f5ff] p-[23px] max-[650px]:p-[17px]">
+        <div class="grid h-[26px] w-[26px] shrink-0 place-items-center rounded-full bg-[#dce5ff] font-extrabold text-[#3157d5]">i</div>
+        <div>
+          <h3 class="mb-[9px] mt-[3px] text-xs font-bold text-[#263248]">¿Qué es una transferencia cálida?</h3>
+          <p class="m-0 text-[11px] leading-[1.8] text-[#68758f]">
+            El agente actual comparte el contexto con el agente receptor antes de pasarle la atención, ayudando a evitar que el cliente tenga que repetir su problema.
+          </p>
+        </div>
+      </section>
+
+    </aside>
+  </div>
+</div>

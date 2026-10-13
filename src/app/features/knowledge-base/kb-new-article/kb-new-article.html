@@ -1,1 +1,185 @@
-<p>kb-new-article works!</p>
+
+<section class="min-h-screen bg-slate-50 p-4 text-slate-800 sm:p-6 lg:p-8">
+  <div class="mx-auto max-w-4xl">
+
+    <!-- Encabezado -->
+    <div class="mb-8 flex items-center justify-between gap-4">
+      <div>
+        <span class="text-xs font-bold tracking-[0.2em] text-blue-600">
+          CENTRO DE CONOCIMIENTO
+        </span>
+
+        <h2 class="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+          Crear nuevo artículo
+        </h2>
+
+        <p class="mt-2 text-sm leading-6 text-slate-500">
+          Documenta soluciones e información útil para el equipo de soporte.
+        </p>
+      </div>
+
+      <div class="hidden h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-100 text-3xl sm:flex">
+        ✍️
+      </div>
+    </div>
+
+    <!-- Formulario -->
+    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+
+      <div class="flex flex-col gap-3 border-b border-slate-200 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+        <div>
+          <h3 class="text-lg font-bold text-slate-900">
+            Información del artículo
+          </h3>
+          <p class="mt-1 text-sm text-slate-500">
+            Los campos marcados con * son obligatorios.
+          </p>
+        </div>
+
+        <span class="w-fit rounded-full bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700">
+          Nuevo documento
+        </span>
+      </div>
+
+      <form
+        (ngSubmit)="guardarArticulo()"
+        #formulario="ngForm"
+        class="space-y-6 p-5 sm:p-6"
+      >
+
+        <!-- Título -->
+        <div>
+          <label for="titulo" class="mb-2 block text-sm font-semibold text-slate-700">
+            Título del artículo *
+          </label>
+
+          <input
+            id="titulo"
+            name="titulo"
+            type="text"
+            [(ngModel)]="titulo"
+            placeholder="Ej. Cómo resolver problemas de conexión"
+            maxlength="150"
+            required
+            class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          />
+        </div>
+
+        <!-- Categoría -->
+        <div>
+          <label for="categoria" class="mb-2 block text-sm font-semibold text-slate-700">
+            Categoría *
+          </label>
+
+          <select
+            id="categoria"
+            name="categoria"
+            [(ngModel)]="categoria"
+            required
+            class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          >
+            <option *ngFor="let cat of categorias" [value]="cat">
+              {{ cat }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Resumen -->
+        <div>
+          <label for="resumen" class="mb-2 block text-sm font-semibold text-slate-700">
+            Resumen *
+          </label>
+
+          <textarea
+            id="resumen"
+            name="resumen"
+            [(ngModel)]="resumen"
+            placeholder="Describe brevemente qué aprenderá el lector..."
+            rows="3"
+            maxlength="300"
+            required
+            class="w-full resize-y rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm leading-6 text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          ></textarea>
+
+          <div class="mt-2 flex justify-end">
+            <span
+              class="text-xs"
+              [ngClass]="{
+                'text-slate-400': resumen.length < 280,
+                'font-semibold text-orange-600': resumen.length >= 280
+              }"
+            >
+              {{ resumen.length }}/300 caracteres
+            </span>
+          </div>
+        </div>
+
+        <!-- Contenido -->
+        <div>
+          <label for="contenido" class="mb-2 block text-sm font-semibold text-slate-700">
+            Contenido del artículo *
+          </label>
+
+          <textarea
+            id="contenido"
+            name="contenido"
+            [(ngModel)]="contenido"
+            placeholder="Escribe aquí los pasos, instrucciones y recomendaciones..."
+            rows="9"
+            required
+            class="w-full resize-y rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm leading-7 text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          ></textarea>
+
+          <p class="mt-2 text-xs text-slate-400">
+            Incluye instrucciones claras y recomendaciones útiles para el equipo.
+          </p>
+        </div>
+
+        <!-- Nota informativa -->
+        <div class="flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4">
+          <span class="text-lg text-blue-600">ⓘ</span>
+          <p class="text-sm leading-6 text-blue-800">
+            Al guardar, el artículo quedará pendiente de revisión y aprobación.
+          </p>
+        </div>
+
+        <!-- Mensaje de éxito -->
+        <div
+          *ngIf="mensaje"
+          class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800"
+          role="status"
+        >
+          ✓ {{ mensaje }}
+        </div>
+
+        <!-- Mensaje de error -->
+        <div
+          *ngIf="error"
+          class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700"
+          role="alert"
+        >
+          ⚠ {{ error }}
+        </div>
+
+        <!-- Botones -->
+        <div class="flex flex-col-reverse gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            class="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-300"
+            (click)="volverAArticulos()"
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="submit"
+            class="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
+          >
+            Guardar artículo →
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</section>

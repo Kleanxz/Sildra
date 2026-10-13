@@ -1,6 +1,5 @@
 
 <div class="sildra">
-
   <aside class="sidebar">
     <div class="logo">
       <div class="logo-icon">S</div>
@@ -31,10 +30,44 @@
 
       <button
         type="button"
+        [class.active]="seccionActual === 'transferencia'"
+        (click)="irATransferenciaCalida()">
+        <span class="menu-icon">⇄</span>
+        <span>Transferencia cálida</span>
+      </button>
+
+      <button
+        type="button"
         [class.active]="mostrarBandeja && seccionActual === 'tickets'"
         (click)="irATickets()">
         <span class="menu-icon">🎫</span>
         <span>Tickets</span>
+      </button>
+
+      <div class="menu-label knowledge-label">BASE DE CONOCIMIENTO</div>
+
+      <button
+        type="button"
+        [class.active]="seccionActual === 'kb-list'"
+        (click)="irAArticulosKB()">
+        <span class="menu-icon">▤</span>
+        <span>Artículos</span>
+      </button>
+
+      <button
+        type="button"
+        [class.active]="seccionActual === 'kb-new-article'"
+        (click)="irANuevoArticuloKB()">
+        <span class="menu-icon">＋</span>
+        <span>Nuevo artículo</span>
+      </button>
+
+      <button
+        type="button"
+        [class.active]="seccionActual === 'kb-review'"
+        (click)="irARevisionKB()">
+        <span class="menu-icon">✓</span>
+        <span>Revisión de artículos</span>
       </button>
     </nav>
 
@@ -49,33 +82,68 @@
   </aside>
 
   <div class="main-area">
-
     <header class="topbar">
       <div class="topbar-heading">
         <span class="eyebrow">CENTRO DE OPERACIONES</span>
+
         <h2>
           @if (seccionActual === 'dashboard') {
             Bandeja de tickets
           } @else if (seccionActual === 'tickets') {
             Gestión de tickets
-          } @else {
+          } @else if (seccionActual === 'llamadas') {
             Detalles de llamadas
+          } @else if (seccionActual === 'transferencia') {
+            Transferencia cálida entrante
+          } @else if (seccionActual === 'kb-list') {
+            Base de conocimiento
+          } @else if (seccionActual === 'kb-new-article') {
+            Nuevo artículo
+          } @else if (seccionActual === 'kb-review') {
+            Revisión de artículos
+          } @else {
+            Centro de soporte
           }
         </h2>
       </div>
 
       <div class="user-area">
+        <button
+          type="button"
+          (click)="abrirComandos()"
+          title="Abrir comandos con Ctrl + K"
+          style="
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 9px 12px;
+            border: 1px solid #dfe5ee;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #64748b;
+            cursor: pointer;
+            font: inherit;
+            font-size: 12px;
+          ">
+          <span style="font-size: 18px;">⌕</span>
+          <span>Comandos</span>
+          <kbd style="
+            padding: 3px 5px;
+            border: 1px solid #e1e6ee;
+            border-radius: 4px;
+            background: #f6f8fb;
+            font-size: 10px;
+          ">Ctrl K</kbd>
+        </button>
+
         <span class="user-status">En línea</span>
         <div class="avatar top-avatar">A</div>
       </div>
     </header>
 
     <div class="workspace">
-
       @if (mostrarBandeja) {
-
         <main class="content">
-
           <div class="page-header">
             <div>
               <h2>
@@ -83,6 +151,7 @@
                   ? 'Bandeja de tickets'
                   : 'Gestión de tickets' }}
               </h2>
+
               <p>
                 Gestiona y da seguimiento a las solicitudes de soporte.
               </p>
@@ -98,7 +167,6 @@
 
           @if (seccionActual === 'dashboard') {
             <section class="counters">
-
               <div class="counter">
                 <div class="counter-symbol all-symbol">▤</div>
                 <span class="counter-title">Todos los tickets</span>
@@ -122,7 +190,6 @@
                 <span class="counter-title">Resueltos</span>
                 <strong>{{ contarEstado('Resuelto') }}</strong>
               </div>
-
             </section>
 
             <section class="filters">
@@ -248,7 +315,6 @@
               tickets
             </div>
           </section>
-
         </main>
       }
 
@@ -318,13 +384,185 @@
                 Crear ticket
               </button>
             </div>
-
           </div>
         </div>
       }
 
       <router-outlet></router-outlet>
-
     </div>
   </div>
+
+  <!-- PALETA DE COMANDOS -->
+  @if (comandosAbiertos) {
+    <div
+      class="command-overlay"
+      (click)="cerrarComandos()"
+      style="
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 12vh 16px 24px;
+        background: rgba(17, 27, 45, 0.60);
+        backdrop-filter: blur(3px);
+      ">
+
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-label="Paleta de comandos"
+        (click)="$event.stopPropagation()"
+        style="
+          width: 100%;
+          max-width: 590px;
+          overflow: hidden;
+          border: 1px solid #e0e6ef;
+          border-radius: 14px;
+          background: #ffffff;
+          box-shadow: 0 24px 80px rgba(0, 0, 0, 0.24);
+          color: #29374d;
+        ">
+
+        <div style="
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 16px;
+          border-bottom: 1px solid #edf0f5;
+        ">
+          <span style="font-size: 24px; color: #416bd0;">⌕</span>
+
+          <input
+            type="text"
+            placeholder="Escribe un comando..."
+            aria-label="Buscar comandos"
+            [(ngModel)]="busquedaComando"
+            (ngModelChange)="indiceComando = 0"
+            autofocus
+            style="
+              flex: 1;
+              min-width: 0;
+              padding: 8px 0;
+              border: 0;
+              outline: none;
+              background: transparent;
+              color: #253248;
+              font: inherit;
+              font-size: 14px;
+            ">
+
+          <kbd style="
+            padding: 4px 7px;
+            border: 1px solid #e1e6ee;
+            border-radius: 5px;
+            background: #f6f8fb;
+            color: #778397;
+            font-size: 10px;
+          ">ESC</kbd>
+        </div>
+
+        <div style="
+          padding: 15px 17px 8px;
+          color: #8a96a8;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 1.2px;
+        ">
+          NAVEGACIÓN
+        </div>
+
+        @if (comandosFiltrados.length > 0) {
+          <div style="
+            max-height: 350px;
+            overflow-y: auto;
+            padding: 0 8px 10px;
+          ">
+            @for (comando of comandosFiltrados; track comando.accion; let i = $index) {
+              <button
+                type="button"
+                (mouseenter)="indiceComando = i"
+                (click)="ejecutarComando(comando.accion)"
+                [style.background]="i === indiceComando ? '#eef3ff' : '#ffffff'"
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 12px;
+                  width: 100%;
+                  padding: 12px 11px;
+                  border: 0;
+                  border-radius: 8px;
+                  color: #29374d;
+                  font-family: inherit;
+                  text-align: left;
+                  cursor: pointer;
+                ">
+
+                <span style="
+                  display: grid;
+                  place-items: center;
+                  width: 36px;
+                  height: 36px;
+                  flex-shrink: 0;
+                  border-radius: 9px;
+                  background: #f0f4ff;
+                  color: #416bd0;
+                  font-size: 18px;
+                ">↗</span>
+
+                <span style="
+                  display: flex;
+                  flex: 1;
+                  flex-direction: column;
+                  gap: 5px;
+                ">
+                  <strong style="font-size: 12px;">
+                    {{ comando.titulo }}
+                  </strong>
+
+                  <small style="color: #7b8798; font-size: 11px;">
+                    {{ comando.descripcion }}
+                  </small>
+                </span>
+
+                @if (i === indiceComando) {
+                  <span style="color: #416bd0; font-size: 18px;">↵</span>
+                }
+              </button>
+            }
+          </div>
+        } @else {
+          <div style="
+            padding: 30px 15px;
+            color: #7b8798;
+            text-align: center;
+          ">
+            <div style="font-size: 27px;">⌕</div>
+            <p style="color: #344258; font-size: 13px;">
+              No se encontraron comandos.
+            </p>
+            <small style="font-size: 11px;">
+              Prueba con otra palabra.
+            </small>
+          </div>
+        }
+
+        <footer style="
+          display: flex;
+          flex-wrap: wrap;
+          gap: 14px;
+          padding: 12px 17px;
+          border-top: 1px solid #edf0f5;
+          background: #fafbfd;
+          color: #7b8798;
+          font-size: 10px;
+        ">
+          <span>↑ ↓ Navegar</span>
+          <span>ENTER Ejecutar</span>
+          <span>ESC Cerrar</span>
+        </footer>
+      </section>
+    </div>
+  }
 </div>
