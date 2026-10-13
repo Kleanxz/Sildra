@@ -1,305 +1,391 @@
 
+import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+
+type Prioridad = 'P1' | 'P2' | 'P3';
+type Estado = 'Abierto' | 'En progreso' | 'Pendiente' | 'Resuelto';
 
 interface Ticket {
   id: string;
   titulo: string;
   descripcion: string;
   solicitante: string;
-  prioridad: string;
-  estado: string;
+  email: string;
+  organizacion: string;
+  sucursal: string;
+  categoria: string;
+  prioridad: Prioridad;
+  estado: Estado;
   agente: string;
-  fecha: string;
+  cola: string;
+  canal: string;
+  creado: string;
+  slaHoras: number;
+  slaRestante: number;
 }
 
 @Component({
   selector: 'app-root',
-  imports: [FormsModule],
-  templateUrl: './app.html',
-  styleUrl: './app.css'
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  templateUrl: './app.html'
 })
 export class App {
-  mostrarFormulario = false;
-  mostrarDetalle = false;
-  mostrarAsignacion = false;
-  activeTab = 'Mis tickets';
+  secciones = [
+    { nombre: 'Bandeja de tickets', icono: '▤', grupo: 'Tickets' },
+    { nombre: 'Detalle de ticket', icono: '▣', grupo: 'Tickets' },
+    { nombre: 'Crear ticket', icono: '+', grupo: 'Tickets' },
+    { nombre: 'Asignar tickets', icono: '⇄', grupo: 'Tickets' },
+    { nombre: 'Panel de operación', icono: '▦', grupo: 'Operación' },
+    { nombre: 'Prioridad, SLA y colas', icono: '◷', grupo: 'Operación' },
+    { nombre: 'Perfil del usuario', icono: '◎', grupo: 'Cuenta' }
+  ];
 
-  ticketSeleccionado: Ticket | null = null;
-  agenteSeleccionado = '';
+  activeTab = 'Bandeja de tickets';
+
+  agentes = ['María', 'Carlos', 'Luis', 'Ana', 'Sin asignar'];
+  prioridades: Prioridad[] = ['P1', 'P2', 'P3'];
+  estados: Estado[] = ['Abierto', 'En progreso', 'Pendiente', 'Resuelto'];
+
+  categorias = [
+    'Hardware',
+    'Software',
+    'Redes',
+    'Telefonía',
+    'Accesos',
+    'Otro'
+  ];
+
+  colas = [
+    'Soporte técnico',
+    'Infraestructura',
+    'Telefonía',
+    'Aplicaciones',
+    'Accesos'
+  ];
+
+  tickets: Ticket[] = [
+    {
+      id: 'TK-1001',
+      titulo: 'Teléfono IP sin conexión',
+      descripcion: 'El teléfono IP de recepción perdió la conexión con el servidor de telefonía.',
+      solicitante: 'Juan Pérez',
+      email: 'juan.perez@empresa.com',
+      organizacion: 'Empresa Central',
+      sucursal: 'Sucursal principal',
+      categoria: 'Telefonía',
+      prioridad: 'P1',
+      estado: 'Abierto',
+      agente: 'María',
+      cola: 'Telefonía',
+      canal: 'Teléfono',
+      creado: '2026-10-13T08:15:00',
+      slaHoras: 4,
+      slaRestante: 1
+    },
+    {
+      id: 'TK-1002',
+      titulo: 'No puedo acceder al correo',
+      descripcion: 'El usuario recibe un error de autenticación al iniciar sesión en el correo corporativo.',
+      solicitante: 'Laura Gómez',
+      email: 'laura.gomez@empresa.com',
+      organizacion: 'Empresa Central',
+      sucursal: 'Sucursal norte',
+      categoria: 'Accesos',
+      prioridad: 'P2',
+      estado: 'En progreso',
+      agente: 'Carlos',
+      cola: 'Accesos',
+      canal: 'Correo',
+      creado: '2026-10-13T07:30:00',
+      slaHoras: 8,
+      slaRestante: 5
+    },
+    {
+      id: 'TK-1003',
+      titulo: 'Computadora demasiado lenta',
+      descripcion: 'La computadora tarda varios minutos en iniciar y abrir las aplicaciones.',
+      solicitante: 'Pedro Castillo',
+      email: 'pedro.castillo@empresa.com',
+      organizacion: 'Empresa Central',
+      sucursal: 'Sucursal sur',
+      categoria: 'Hardware',
+      prioridad: 'P3',
+      estado: 'Pendiente',
+      agente: 'Luis',
+      cola: 'Soporte técnico',
+      canal: 'Portal',
+      creado: '2026-10-12T15:20:00',
+      slaHoras: 24,
+      slaRestante: 16
+    },
+    {
+      id: 'TK-1004',
+      titulo: 'Falla en la conexión de red',
+      descripcion: 'Varios equipos de la oficina no tienen acceso a la red interna.',
+      solicitante: 'Ana Rodríguez',
+      email: 'ana.rodriguez@empresa.com',
+      organizacion: 'Empresa Central',
+      sucursal: 'Sucursal principal',
+      categoria: 'Redes',
+      prioridad: 'P1',
+      estado: 'En progreso',
+      agente: 'Carlos',
+      cola: 'Infraestructura',
+      canal: 'Teléfono',
+      creado: '2026-10-12T14:00:00',
+      slaHoras: 4,
+      slaRestante: -1
+    },
+    {
+      id: 'TK-1005',
+      titulo: 'Instalación de programa',
+      descripcion: 'Se necesita instalar una herramienta de trabajo autorizada.',
+      solicitante: 'Miguel Santos',
+      email: 'miguel.santos@empresa.com',
+      organizacion: 'Empresa Central',
+      sucursal: 'Sucursal este',
+      categoria: 'Software',
+      prioridad: 'P3',
+      estado: 'Abierto',
+      agente: 'Sin asignar',
+      cola: 'Aplicaciones',
+      canal: 'Portal',
+      creado: '2026-10-13T06:45:00',
+      slaHoras: 24,
+      slaRestante: 20
+    },
+    {
+      id: 'TK-1006',
+      titulo: 'Impresora no responde',
+      descripcion: 'La impresora compartida aparece desconectada en los equipos de contabilidad.',
+      solicitante: 'Carmen Díaz',
+      email: 'carmen.diaz@empresa.com',
+      organizacion: 'Empresa Central',
+      sucursal: 'Sucursal norte',
+      categoria: 'Hardware',
+      prioridad: 'P2',
+      estado: 'Abierto',
+      agente: 'María',
+      cola: 'Soporte técnico',
+      canal: 'Correo',
+      creado: '2026-10-12T12:10:00',
+      slaHoras: 8,
+      slaRestante: 3
+    },
+    {
+      id: 'TK-1007',
+      titulo: 'Error al abrir el sistema',
+      descripcion: 'La aplicación interna muestra un mensaje de error al intentar abrirla.',
+      solicitante: 'José Ramírez',
+      email: 'jose.ramirez@empresa.com',
+      organizacion: 'Empresa Central',
+      sucursal: 'Sucursal principal',
+      categoria: 'Software',
+      prioridad: 'P2',
+      estado: 'Pendiente',
+      agente: 'Ana',
+      cola: 'Aplicaciones',
+      canal: 'Portal',
+      creado: '2026-10-11T10:00:00',
+      slaHoras: 8,
+      slaRestante: 2
+    },
+    {
+      id: 'TK-1008',
+      titulo: 'Solicitud de acceso a carpeta',
+      descripcion: 'El empleado necesita permisos para consultar una carpeta compartida.',
+      solicitante: 'Sofía Martínez',
+      email: 'sofia.martinez@empresa.com',
+      organizacion: 'Empresa Central',
+      sucursal: 'Sucursal sur',
+      categoria: 'Accesos',
+      prioridad: 'P3',
+      estado: 'Resuelto',
+      agente: 'Luis',
+      cola: 'Accesos',
+      canal: 'Correo',
+      creado: '2026-10-10T09:30:00',
+      slaHoras: 24,
+      slaRestante: 12
+    },
+    {
+      id: 'TK-1009',
+      titulo: 'Audio intermitente en llamadas',
+      descripcion: 'Las llamadas presentan cortes de audio durante la conversación.',
+      solicitante: 'Daniel Herrera',
+      email: 'daniel.herrera@empresa.com',
+      organizacion: 'Empresa Central',
+      sucursal: 'Sucursal este',
+      categoria: 'Telefonía',
+      prioridad: 'P1',
+      estado: 'Abierto',
+      agente: 'Sin asignar',
+      cola: 'Telefonía',
+      canal: 'Teléfono',
+      creado: '2026-10-13T08:45:00',
+      slaHoras: 4,
+      slaRestante: 2
+    },
+    {
+      id: 'TK-1010',
+      titulo: 'Actualización de equipo',
+      descripcion: 'Solicitud para actualizar el sistema operativo de una computadora.',
+      solicitante: 'Elena Cruz',
+      email: 'elena.cruz@empresa.com',
+      organizacion: 'Empresa Central',
+      sucursal: 'Sucursal principal',
+      categoria: 'Software',
+      prioridad: 'P3',
+      estado: 'Resuelto',
+      agente: 'Carlos',
+      cola: 'Soporte técnico',
+      canal: 'Portal',
+      creado: '2026-10-09T11:20:00',
+      slaHoras: 24,
+      slaRestante: 18
+    },
+    {
+      id: 'TK-1011',
+      titulo: 'Acceso bloqueado al sistema',
+      descripcion: 'La cuenta del empleado se encuentra bloqueada después de varios intentos.',
+      solicitante: 'Ricardo Núñez',
+      email: 'ricardo.nunez@empresa.com',
+      organizacion: 'Empresa Central',
+      sucursal: 'Sucursal norte',
+      categoria: 'Accesos',
+      prioridad: 'P2',
+      estado: 'En progreso',
+      agente: 'Ana',
+      cola: 'Accesos',
+      canal: 'Correo',
+      creado: '2026-10-12T16:10:00',
+      slaHoras: 8,
+      slaRestante: 4
+    },
+    {
+      id: 'TK-1012',
+      titulo: 'Punto de red sin servicio',
+      descripcion: 'El punto de red de un puesto de trabajo no detecta conexión.',
+      solicitante: 'Gabriel Torres',
+      email: 'gabriel.torres@empresa.com',
+      organizacion: 'Empresa Central',
+      sucursal: 'Sucursal sur',
+      categoria: 'Redes',
+      prioridad: 'P2',
+      estado: 'Abierto',
+      agente: 'María',
+      cola: 'Infraestructura',
+      canal: 'Portal',
+      creado: '2026-10-13T07:10:00',
+      slaHoras: 8,
+      slaRestante: 6
+    }
+  ];
 
   busqueda = '';
   filtroEstado = '';
   filtroPrioridad = '';
   filtroAgente = '';
+  filtroCola = '';
 
   paginaActual = 1;
   ticketsPorPagina = 6;
 
-  agentes = ['María', 'Carlos', 'Luis', 'Sin asignar'];
+  mostrarFormulario = false;
+  mostrarDetalle = false;
+  mostrarAsignacion = false;
 
-  nuevoTicket = {
-    titulo: '',
-    descripcion: '',
-    solicitante: '',
-    prioridad: 'Media'
+  ticketSeleccionado: Ticket | null = null;
+  agenteSeleccionado = '';
+
+  nuevoTicket: Ticket = this.formularioVacio();
+
+  perfil = {
+    nombre: 'Nelson Mejía',
+    email: 'nelson@empresa.com',
+    cargo: 'Agente de soporte',
+    departamento: 'Soporte técnico',
+    telefono: '',
+    zonaHoraria: 'America/Santo_Domingo',
+    notificaciones: true
   };
 
-  tickets: Ticket[] = [
-    {
-      id: '#TK-001',
-      titulo: 'No puedo acceder al sistema',
-      descripcion: 'Problema con las credenciales de acceso',
-      solicitante: 'Juan Pérez',
-      prioridad: 'Alta',
-      estado: 'Abierto',
-      agente: 'María',
-      fecha: '06/10/2026'
-    },
-    {
-      id: '#TK-002',
-      titulo: 'Error al generar reporte',
-      descripcion: 'El reporte muestra información incorrecta',
-      solicitante: 'Ana Rodríguez',
-      prioridad: 'Media',
-      estado: 'En progreso',
-      agente: 'Carlos',
-      fecha: '05/10/2026'
-    },
-    {
-      id: '#TK-003',
-      titulo: 'Solicitud de acceso',
-      descripcion: 'Necesito acceso al módulo de ventas',
-      solicitante: 'Pedro Gómez',
-      prioridad: 'Baja',
-      estado: 'Resuelto',
-      agente: 'María',
-      fecha: '04/10/2026'
-    },
-    {
-      id: '#TK-004',
-      titulo: 'Sistema lento',
-      descripcion: 'La aplicación tarda mucho en cargar',
-      solicitante: 'Laura Martínez',
-      prioridad: 'Alta',
-      estado: 'Abierto',
-      agente: 'Carlos',
-      fecha: '03/10/2026'
-    },
-    {
-      id: '#TK-005',
-      titulo: 'Problema con impresora',
-      descripcion: 'La impresora no responde al enviar documentos',
-      solicitante: 'Luis Sánchez',
-      prioridad: 'Media',
-      estado: 'En progreso',
-      agente: 'María',
-      fecha: '02/10/2026'
-    },
-    {
-      id: '#TK-006',
-      titulo: 'Actualizar contraseña',
-      descripcion: 'El usuario necesita cambiar su contraseña',
-      solicitante: 'Sofía Ramírez',
-      prioridad: 'Baja',
-      estado: 'Resuelto',
-      agente: 'Carlos',
-      fecha: '01/10/2026'
-    },
-    {
-      id: '#TK-007',
-      titulo: 'Error en módulo de ventas',
-      descripcion: 'No permite registrar una nueva venta',
-      solicitante: 'Miguel Torres',
-      prioridad: 'Alta',
-      estado: 'Abierto',
-      agente: 'María',
-      fecha: '30/09/2026'
-    },
-    {
-      id: '#TK-008',
-      titulo: 'No funciona el correo',
-      descripcion: 'El usuario no puede enviar correos electrónicos',
-      solicitante: 'Daniel Castillo',
-      prioridad: 'Media',
-      estado: 'En progreso',
-      agente: 'Carlos',
-      fecha: '29/09/2026'
-    },
-    {
-      id: '#TK-009',
-      titulo: 'Solicitud de nuevo usuario',
-      descripcion: 'Se necesita crear una cuenta para un empleado',
-      solicitante: 'Carla Gómez',
-      prioridad: 'Baja',
-      estado: 'Resuelto',
-      agente: 'María',
-      fecha: '28/09/2026'
-    },
-    {
-      id: '#TK-010',
-      titulo: 'Error de conexión',
-      descripcion: 'El sistema pierde conexión con el servidor',
-      solicitante: 'José Díaz',
-      prioridad: 'Alta',
-      estado: 'Abierto',
-      agente: 'Carlos',
-      fecha: '27/09/2026'
-    },
-    {
-      id: '#TK-011',
-      titulo: 'Pantalla en blanco',
-      descripcion: 'La pantalla principal no muestra información',
-      solicitante: 'Gabriela Núñez',
-      prioridad: 'Media',
-      estado: 'En progreso',
-      agente: 'María',
-      fecha: '26/09/2026'
-    },
-    {
-      id: '#TK-012',
-      titulo: 'Consulta sobre permisos',
-      descripcion: 'El usuario necesita permisos adicionales',
-      solicitante: 'Andrés López',
-      prioridad: 'Baja',
-      estado: 'Resuelto',
-      agente: 'Carlos',
-      fecha: '25/09/2026'
-    }
-  ];
+  mensaje = '';
+  tipoMensaje: 'success' | 'error' = 'success';
 
-  abrirDetalle(ticket: Ticket) {
-    this.ticketSeleccionado = ticket;
-    this.mostrarDetalle = true;
+  formularioVacio(): Ticket {
+    return {
+      id: '',
+      titulo: '',
+      descripcion: '',
+      solicitante: '',
+      email: '',
+      organizacion: '',
+      sucursal: '',
+      categoria: 'Software',
+      prioridad: 'P2',
+      estado: 'Abierto',
+      agente: 'Sin asignar',
+      cola: 'Soporte técnico',
+      canal: 'Portal',
+      creado: new Date().toISOString(),
+      slaHoras: 8,
+      slaRestante: 8
+    };
   }
 
-  cerrarDetalle() {
+  cambiarPestana(nombre: string): void {
+    this.activeTab = nombre;
     this.mostrarDetalle = false;
-    this.ticketSeleccionado = null;
-  }
-
-  abrirAsignacion(ticket: Ticket) {
-    this.ticketSeleccionado = ticket;
-    this.agenteSeleccionado =
-      ticket.agente === 'Sin asignar' ? '' : ticket.agente;
-    this.mostrarAsignacion = true;
-  }
-
-  cerrarAsignacion() {
     this.mostrarAsignacion = false;
-    this.ticketSeleccionado = null;
-    this.agenteSeleccionado = '';
-  }
+    this.mostrarFormulario = nombre === 'Crear ticket';
 
-  asignarAgente() {
-    if (!this.ticketSeleccionado || !this.agenteSeleccionado) {
-      alert('Selecciona un agente');
-      return;
+    if (nombre === 'Detalle de ticket' && !this.ticketSeleccionado) {
+      this.ticketSeleccionado = this.tickets[0] ?? null;
     }
 
-    this.ticketSeleccionado.agente = this.agenteSeleccionado;
-    this.cerrarAsignacion();
+    if (nombre === 'Crear ticket') {
+      this.nuevoTicket = this.formularioVacio();
+    }
   }
 
-  asignarDesdeDetalle() {
-    const ticket = this.ticketSeleccionado;
-
-    if (!ticket) return;
-
-    this.mostrarDetalle = false;
-    this.abrirAsignacion(ticket);
-  }
-
-  abrirFormulario() {
-    this.mostrarFormulario = true;
-  }
-
-  cerrarFormulario() {
-    this.mostrarFormulario = false;
-  }
-
-  cambiarPestana(pestana: string) {
-    this.activeTab = pestana;
-    this.paginaActual = 1;
-  }
-
-  contarEstado(estado: string) {
-    return this.tickets.filter(
-      ticket => ticket.estado === estado
-    ).length;
-  }
-
-  contarSinAsignar() {
-    return this.tickets.filter(
-      ticket => ticket.agente === 'Sin asignar'
-    ).length;
-  }
-
-  contarRiesgoSLA() {
-    return this.tickets.filter(
-      ticket =>
-        ticket.prioridad === 'Alta' &&
-        ticket.estado !== 'Resuelto'
-    ).length;
-  }
-
-  contarVencidos() {
-    return this.tickets.filter(
-      ticket =>
-        ticket.prioridad === 'Alta' &&
-        ticket.estado === 'Abierto'
-    ).length;
-  }
-
-  ticketsFiltrados() {
+  ticketsFiltrados(): Ticket[] {
     const texto = this.busqueda.toLowerCase().trim();
 
     return this.tickets.filter(ticket => {
-      const coincideBusqueda =
+      const coincideTexto =
         !texto ||
         ticket.id.toLowerCase().includes(texto) ||
         ticket.titulo.toLowerCase().includes(texto) ||
-        ticket.descripcion.toLowerCase().includes(texto) ||
         ticket.solicitante.toLowerCase().includes(texto) ||
-        ticket.agente.toLowerCase().includes(texto);
+        ticket.email.toLowerCase().includes(texto);
 
       const coincideEstado =
-        !this.filtroEstado ||
-        (this.filtroEstado === 'Activos' &&
-          ticket.estado !== 'Resuelto') ||
-        ticket.estado === this.filtroEstado;
+        !this.filtroEstado || ticket.estado === this.filtroEstado;
 
       const coincidePrioridad =
-        !this.filtroPrioridad ||
-        ticket.prioridad === this.filtroPrioridad;
+        !this.filtroPrioridad || ticket.prioridad === this.filtroPrioridad;
 
       const coincideAgente =
-        !this.filtroAgente ||
-        ticket.agente === this.filtroAgente;
+        !this.filtroAgente || ticket.agente === this.filtroAgente;
 
-      const coincidePestana =
-        this.activeTab === 'Mis tickets' ||
-        this.activeTab === 'Mis colas' ||
-        (this.activeTab === 'Sin asignar' &&
-          ticket.agente === 'Sin asignar') ||
-        (this.activeTab === 'Riesgo de SLA' &&
-          ticket.prioridad === 'Alta' &&
-          ticket.estado !== 'Resuelto') ||
-        (this.activeTab === 'Vencidos' &&
-          ticket.prioridad === 'Alta' &&
-          ticket.estado === 'Abierto');
+      const coincideCola =
+        !this.filtroCola || ticket.cola === this.filtroCola;
 
-      return coincideBusqueda &&
+      return (
+        coincideTexto &&
         coincideEstado &&
         coincidePrioridad &&
         coincideAgente &&
-        coincidePestana;
+        coincideCola
+      );
     });
   }
 
-  ticketsPaginados() {
-    const inicio =
-      (this.paginaActual - 1) * this.ticketsPorPagina;
+  ticketsPaginados(): Ticket[] {
+    const inicio = (this.paginaActual - 1) * this.ticketsPorPagina;
 
     return this.ticketsFiltrados().slice(
       inicio,
@@ -307,153 +393,367 @@ export class App {
     );
   }
 
-  totalPaginas() {
-    return Math.ceil(
-      this.ticketsFiltrados().length /
-      this.ticketsPorPagina
+  totalPaginas(): number {
+    return Math.max(
+      1,
+      Math.ceil(this.ticketsFiltrados().length / this.ticketsPorPagina)
     );
   }
 
-  cambiarPagina(pagina: number) {
+  finPagina(): number {
+    return Math.min(
+      this.paginaActual * this.ticketsPorPagina,
+      this.ticketsFiltrados().length
+    );
+  }
+
+  cambiarPagina(pagina: number): void {
     if (pagina >= 1 && pagina <= this.totalPaginas()) {
       this.paginaActual = pagina;
     }
   }
 
-  categoriaTicket(ticket: Ticket): string {
-    const titulo = ticket.titulo.toLowerCase();
-
-    if (titulo.includes('impresora')) return 'hardware';
-
-    if (titulo.includes('reporte') || titulo.includes('venta')) {
-      return 'ventas';
-    }
-
-    if (titulo.includes('contraseña') || titulo.includes('acceder')) {
-      return 'software';
-    }
-
-    if (titulo.includes('correo')) return 'comunicaciones';
-
-    if (titulo.includes('conexión') || titulo.includes('lento')) {
-      return 'software';
-    }
-
-    return 'soporte general';
+  limpiarFiltros(): void {
+    this.busqueda = '';
+    this.filtroEstado = '';
+    this.filtroPrioridad = '';
+    this.filtroAgente = '';
+    this.filtroCola = '';
+    this.paginaActual = 1;
   }
 
-  organizacionTicket(ticket: Ticket): string {
-    const organizaciones = [
-      'Distribuidora Cibao Norte',
-      'Farmacia Nueva Vida',
-      'Ferretería Ozama',
-      'Supermercado La Económica',
-      'Cooperativa San José',
-      'Colmado Hermanos Peña'
-    ];
-
-    const numero = parseInt(ticket.id.slice(-3), 10) || 1;
-
-    return organizaciones[(numero - 1) % organizaciones.length];
+  abrirFormulario(): void {
+    this.nuevoTicket = this.formularioVacio();
+    this.mostrarFormulario = true;
+    this.activeTab = 'Crear ticket';
   }
 
-  sucursalTicket(ticket: Ticket): string {
-    const sucursales = [
-      'Santiago',
-      'Churchill',
-      'Principal',
-      'Villa Mella',
-      'Oficina central',
-      'Santo Domingo'
-    ];
-
-    const numero = parseInt(ticket.id.slice(-3), 10) || 1;
-
-    return sucursales[(numero - 1) % sucursales.length];
+  cerrarFormulario(): void {
+    this.mostrarFormulario = false;
+    this.activeTab = 'Bandeja de tickets';
   }
 
-  etiquetaPrioridad(prioridad: string): string {
-    if (prioridad === 'Alta') return 'P1 Alta';
-    if (prioridad === 'Media') return 'P2 Media';
-
-    return 'P3 Baja';
-  }
-
-  etiquetaEstado(estado: string): string {
-    if (estado === 'Abierto') return 'Nuevo';
-    if (estado === 'En progreso') return 'En progreso';
-
-    return 'Resuelto';
-  }
-
-  textoSLA(ticket: Ticket): string {
-    if (ticket.estado === 'Resuelto') {
-      return 'Resuelto · SLA cumplido';
+  crearTicket(): void {
+    if (
+      !this.nuevoTicket.titulo.trim() ||
+      !this.nuevoTicket.descripcion.trim() ||
+      !this.nuevoTicket.solicitante.trim() ||
+      !this.nuevoTicket.email.trim()
+    ) {
+      this.mostrarMensaje('Completa los campos obligatorios', 'error');
+      return;
     }
 
-    if (ticket.prioridad === 'Alta' && ticket.estado === 'Abierto') {
-      return 'Vencido · revisar';
-    }
+    const siguienteNumero =
+      Math.max(
+        1000,
+        ...this.tickets.map(ticket => Number(ticket.id.replace('TK-', '')) || 0)
+      ) + 1;
 
-    if (ticket.prioridad === 'Alta') {
-      return 'Resolución · 42 min';
-    }
+    const ticketCreado: Ticket = {
+      ...this.nuevoTicket,
+      id: `TK-${siguienteNumero}`,
+      creado: new Date().toISOString(),
+      slaRestante: this.nuevoTicket.slaHoras
+    };
 
-    if (ticket.prioridad === 'Media') {
-      return 'Resolución · 1 h 50 min';
-    }
+    this.tickets.unshift(ticketCreado);
+    this.ticketSeleccionado = ticketCreado;
+    this.nuevoTicket = this.formularioVacio();
+    this.mostrarFormulario = false;
+    this.activeTab = 'Detalle de ticket';
+    this.paginaActual = 1;
 
-    return '1ª respuesta · 3 h';
+    this.mostrarMensaje('Ticket creado correctamente');
   }
 
-  progresoSLA(ticket: Ticket): number {
-    if (ticket.estado === 'Resuelto') return 30;
+  abrirDetalle(ticket: Ticket): void {
+    this.ticketSeleccionado = ticket;
+    this.mostrarDetalle = true;
+    this.mostrarAsignacion = false;
+  }
 
-    if (ticket.prioridad === 'Alta' && ticket.estado === 'Abierto') {
-      return 100;
+  verDetalleDesdeSeccion(ticket: Ticket): void {
+    this.ticketSeleccionado = ticket;
+    this.mostrarDetalle = false;
+    this.mostrarAsignacion = false;
+    this.activeTab = 'Detalle de ticket';
+  }
+
+  cerrarDetalle(): void {
+    this.mostrarDetalle = false;
+  }
+
+  guardarCambiosDetalle(): void {
+    if (!this.ticketSeleccionado) {
+      return;
     }
 
-    if (ticket.prioridad === 'Alta') return 80;
-    if (ticket.prioridad === 'Media') return 45;
-
-    return 20;
+    this.mostrarMensaje('Cambios del ticket guardados correctamente');
+    this.mostrarDetalle = false;
   }
 
-  actividadTicket(ticket: Ticket): string {
-    const numero = parseInt(ticket.id.slice(-3), 10) || 1;
-
-    return `hace ${numero * 3} min`;
+  resolverTicket(ticket: Ticket): void {
+    ticket.estado = 'Resuelto';
+    this.mostrarMensaje(`${ticket.id} marcado como resuelto`);
   }
 
-  exportarVista() {
-    const encabezado = [
-      'ID', 'Título', 'Solicitante', 'Prioridad',
-      'Estado', 'Agente', 'Fecha'
+  reabrirTicket(ticket: Ticket): void {
+    ticket.estado = 'Abierto';
+    this.mostrarMensaje(`${ticket.id} reabierto correctamente`);
+  }
+
+  abrirAsignacion(ticket: Ticket): void {
+    this.ticketSeleccionado = ticket;
+    this.agenteSeleccionado = ticket.agente;
+    this.mostrarAsignacion = true;
+    this.mostrarDetalle = false;
+  }
+
+  asignarAgente(): void {
+    if (!this.ticketSeleccionado || !this.agenteSeleccionado) {
+      this.mostrarMensaje('Selecciona un agente', 'error');
+      return;
+    }
+
+    this.ticketSeleccionado.agente = this.agenteSeleccionado;
+    this.mostrarAsignacion = false;
+
+    this.mostrarMensaje(
+      `Ticket ${this.ticketSeleccionado.id} asignado a ${this.agenteSeleccionado}`
+    );
+  }
+
+  ticketsSinAsignar(): Ticket[] {
+    return this.tickets.filter(
+      ticket =>
+        ticket.agente === 'Sin asignar' &&
+        ticket.estado !== 'Resuelto'
+    );
+  }
+
+  ticketsActivos(): Ticket[] {
+    return this.tickets.filter(ticket => ticket.estado !== 'Resuelto');
+  }
+
+  ticketsResueltos(): Ticket[] {
+    return this.tickets.filter(ticket => ticket.estado === 'Resuelto');
+  }
+
+  ticketsVencidos(): Ticket[] {
+    return this.tickets.filter(
+      ticket =>
+        ticket.estado !== 'Resuelto' &&
+        ticket.slaRestante <= 0
+    );
+  }
+
+  ticketsPorPrioridad(prioridad: Prioridad): Ticket[] {
+    return this.tickets.filter(
+      ticket =>
+        ticket.prioridad === prioridad &&
+        ticket.estado !== 'Resuelto'
+    );
+  }
+
+  ticketsPorCola(cola: string): Ticket[] {
+    return this.tickets.filter(
+      ticket =>
+        ticket.cola === cola &&
+        ticket.estado !== 'Resuelto'
+    );
+  }
+
+  ticketsPorEstado(estado: Estado): Ticket[] {
+    return this.tickets.filter(ticket => ticket.estado === estado);
+  }
+
+  ticketsDeAtencion(): Ticket[] {
+    return this.tickets
+      .filter(
+        ticket =>
+          ticket.estado !== 'Resuelto' &&
+          (ticket.prioridad === 'P1' || ticket.slaRestante <= 2)
+      )
+      .sort((a, b) => a.slaRestante - b.slaRestante);
+  }
+
+  ticketsSlaFiltrados(): Ticket[] {
+    return this.tickets
+      .filter(ticket => {
+        return (
+          ticket.estado !== 'Resuelto' &&
+          (!this.filtroPrioridad ||
+            ticket.prioridad === this.filtroPrioridad)
+        );
+      })
+      .sort((a, b) => a.slaRestante - b.slaRestante);
+  }
+
+  cantidadPorAgente(agente: string): number {
+    return this.tickets.filter(
+      ticket =>
+        ticket.agente === agente &&
+        ticket.estado !== 'Resuelto'
+    ).length;
+  }
+
+  porcentajeAgente(agente: string): number {
+    const total = this.ticketsActivos().length;
+
+    if (total === 0) {
+      return 0;
+    }
+
+    return Math.round((this.cantidadPorAgente(agente) / total) * 100);
+  }
+
+  porcentajeEstado(estado: Estado): number {
+    const total = this.tickets.length;
+
+    if (total === 0) {
+      return 0;
+    }
+
+    return Math.round((this.ticketsPorEstado(estado).length / total) * 100);
+  }
+
+  porcentajeSla(ticket: Ticket): number {
+    if (ticket.slaHoras <= 0) {
+      return 0;
+    }
+
+    return Math.max(
+      0,
+      Math.min(100, (ticket.slaRestante / ticket.slaHoras) * 100)
+    );
+  }
+
+  claseSla(ticket: Ticket): string {
+    if (ticket.slaRestante <= 0) {
+      return 'sla-danger';
+    }
+
+    if (ticket.slaRestante <= 2) {
+      return 'sla-warning';
+    }
+
+    return 'sla-good';
+  }
+
+  textoSla(ticket: Ticket): string {
+    if (ticket.slaRestante < 0) {
+      return `Vencido hace ${Math.abs(ticket.slaRestante)} h`;
+    }
+
+    if (ticket.slaRestante === 0) {
+      return 'Vence ahora';
+    }
+
+    return `${ticket.slaRestante} h restantes`;
+  }
+
+  clasePrioridad(prioridad: Prioridad): string {
+    switch (prioridad) {
+      case 'P1':
+        return 'priority-high';
+      case 'P2':
+        return 'priority-medium';
+      default:
+        return 'priority-low';
+    }
+  }
+
+  claseEstado(estado: Estado): string {
+    switch (estado) {
+      case 'Abierto':
+        return 'status-open';
+      case 'En progreso':
+        return 'status-progress';
+      case 'Pendiente':
+        return 'status-pending';
+      case 'Resuelto':
+        return 'status-resolved';
+    }
+  }
+
+  formatearFecha(fecha: string): string {
+    return new Intl.DateTimeFormat('es-DO', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(new Date(fecha));
+  }
+
+  guardarPerfil(): void {
+    if (!this.perfil.nombre.trim() || !this.perfil.email.trim()) {
+      this.mostrarMensaje('El nombre y el correo son obligatorios', 'error');
+      return;
+    }
+
+    this.mostrarMensaje('Perfil actualizado correctamente');
+  }
+
+  mostrarMensaje(
+    mensaje: string,
+    tipo: 'success' | 'error' = 'success'
+  ): void {
+    this.mensaje = mensaje;
+    this.tipoMensaje = tipo;
+  }
+
+  cerrarMensaje(): void {
+    this.mensaje = '';
+  }
+
+  exportarCSV(): void {
+    const encabezados = [
+      'ID',
+      'Título',
+      'Solicitante',
+      'Correo',
+      'Categoría',
+      'Prioridad',
+      'Estado',
+      'Agente',
+      'Cola',
+      'Canal',
+      'Fecha de creación',
+      'SLA restante'
     ];
 
     const filas = this.ticketsFiltrados().map(ticket => [
       ticket.id,
       ticket.titulo,
       ticket.solicitante,
+      ticket.email,
+      ticket.categoria,
       ticket.prioridad,
       ticket.estado,
       ticket.agente,
-      ticket.fecha
+      ticket.cola,
+      ticket.canal,
+      ticket.creado,
+      `${ticket.slaRestante} horas`
     ]);
 
-    const escapar = (valor: string) =>
-      `"${String(valor).replace(/"/g, '""')}"`;
+    const escaparCSV = (valor: string | number): string => {
+      return `"${String(valor).replace(/"/g, '""')}"`;
+    };
 
-    const csv = [encabezado, ...filas]
-      .map(fila => fila.map(escapar).join(','))
-      .join('\n');
+    const contenido = [
+      encabezados.map(escaparCSV).join(','),
+      ...filas.map(fila => fila.map(escaparCSV).join(','))
+    ].join('\r\n');
 
-    const blob = new Blob(
-      ['\uFEFF' + csv],
+    const archivo = new Blob(
+      ['\uFEFF', contenido],
       { type: 'text/csv;charset=utf-8;' }
     );
 
-    const url = URL.createObjectURL(blob);
+    const url = URL.createObjectURL(archivo);
     const enlace = document.createElement('a');
 
     enlace.href = url;
@@ -461,48 +761,7 @@ export class App {
     enlace.click();
 
     URL.revokeObjectURL(url);
-  }
 
-  crearTicket() {
-    if (
-      !this.nuevoTicket.titulo.trim() ||
-      !this.nuevoTicket.descripcion.trim() ||
-      !this.nuevoTicket.solicitante.trim()
-    ) {
-      alert('Completa todos los campos');
-      return;
-    }
-
-    const siguienteNumero =
-      Math.max(
-        0,
-        ...this.tickets.map(ticket =>
-          parseInt(ticket.id.replace('#TK-', ''), 10) || 0
-        )
-      ) + 1;
-
-    const nuevo: Ticket = {
-      id: '#TK-' + String(siguienteNumero).padStart(3, '0'),
-      titulo: this.nuevoTicket.titulo.trim(),
-      descripcion: this.nuevoTicket.descripcion.trim(),
-      solicitante: this.nuevoTicket.solicitante.trim(),
-      prioridad: this.nuevoTicket.prioridad,
-      estado: 'Abierto',
-      agente: 'Sin asignar',
-      fecha: new Date().toLocaleDateString('es-DO')
-    };
-
-    this.tickets.unshift(nuevo);
-
-    this.nuevoTicket = {
-      titulo: '',
-      descripcion: '',
-      solicitante: '',
-      prioridad: 'Media'
-    };
-
-    this.paginaActual = 1;
-    this.activeTab = 'Mis tickets';
-    this.mostrarFormulario = false;
+    this.mostrarMensaje('Archivo CSV exportado correctamente');
   }
 }
