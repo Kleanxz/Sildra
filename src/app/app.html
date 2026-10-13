@@ -1,335 +1,632 @@
 
 <div class="sildra">
-
-  <header class="topbar">
-    <div class="logo">
-      <div class="logo-icon">S</div>
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">S</div>
       <div>
-        <h1>Sildra Support</h1>
-        <span>Centro de soporte</span>
+        <h2>SILDRA</h2>
+        <span>SUPPORT DESK</span>
       </div>
     </div>
 
-    <div class="user-area">
-      <span>Agente</span>
-      <div class="avatar">A</div>
-    </div>
-  </header>
-
-  <main class="content">
-
-    <div class="page-header">
+    <div class="workspace">
+      <span class="workspace-icon">S</span>
       <div>
-        <h2>Bandeja de tickets</h2>
-        <p>Gestiona y da seguimiento a las solicitudes de soporte</p>
+        <strong>Sildra Support</strong>
+        <small>Espacio de trabajo</small>
       </div>
+      <span class="workspace-arrow">⌄</span>
+    </div>
 
-      <button class="new-ticket" (click)="abrirFormulario()">
-        + Nuevo ticket
+    <p class="menu-label">MENÚ PRINCIPAL</p>
+
+    <nav class="menu">
+      <button
+        class="menu-item selected"
+        (click)="cambiarPestana('Mis tickets')">
+        <span>▤</span> Bandeja de tickets
       </button>
+
+      <button
+        class="menu-item"
+        (click)="cambiarPestana('Mis colas')">
+        <span>▦</span> Mis colas
+      </button>
+
+      <button
+        class="menu-item"
+        (click)="cambiarPestana('Sin asignar')">
+        <span>◷</span> Sin asignar
+        <span class="menu-count">{{ contarSinAsignar() }}</span>
+      </button>
+
+      <button
+        class="menu-item"
+        (click)="cambiarPestana('Riesgo de SLA')">
+        <span>◉</span> Riesgo de SLA
+        <span class="menu-count warning-count">
+          {{ contarRiesgoSLA() }}
+        </span>
+      </button>
+
+      <button
+        class="menu-item"
+        (click)="cambiarPestana('Vencidos')">
+        <span>◴</span> Tickets vencidos
+      </button>
+    </nav>
+
+    <p class="menu-label">GESTIÓN</p>
+
+    <nav class="menu">
+      <button class="menu-item" (click)="abrirFormulario()">
+        <span>＋</span> Crear ticket
+      </button>
+      <button class="menu-item" (click)="exportarVista()">
+        <span>⇩</span> Exportar tickets
+      </button>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="online-dot"></div>
+      <div>
+        <strong>Sistema operativo</strong>
+        <small>Todos los servicios activos</small>
+      </div>
     </div>
 
-    <section class="counters">
+    <div class="user-sidebar">
+      <div class="avatar">NM</div>
+      <div class="user-sidebar-info">
+        <strong>Nelson Mejía</strong>
+        <small>Agente de soporte</small>
+      </div>
+      <span>•••</span>
+    </div>
+  </aside>
 
-      <div class="counter">
-        <span class="counter-title">Todos</span>
-        <strong>{{ tickets.length }}</strong>
+  <main class="main-content">
+    <header class="topbar">
+      <div class="breadcrumb">
+        <span>Soporte</span>
+        <span>/</span>
+        <strong>{{ activeTab }}</strong>
       </div>
 
-      <div class="counter">
-        <span class="counter-title">Abiertos</span>
-        <strong>{{ contarEstado('Abierto') }}</strong>
-      </div>
-
-      <div class="counter">
-        <span class="counter-title">En progreso</span>
-        <strong>{{ contarEstado('En progreso') }}</strong>
-      </div>
-
-      <div class="counter">
-        <span class="counter-title">Resueltos</span>
-        <strong>{{ contarEstado('Resuelto') }}</strong>
-      </div>
-
-    </section>
-
-    <section class="filters">
-
-      <div class="search">
-        <span>⌕</span>
-
-        <input
-          type="text"
-          [(ngModel)]="busqueda"
-          placeholder="Buscar tickets..."
-        >
-      </div>
-
-      <select [(ngModel)]="filtroEstado">
-        <option value="">Todos los estados</option>
-        <option value="Abierto">Abierto</option>
-        <option value="En progreso">En progreso</option>
-        <option value="Resuelto">Resuelto</option>
-      </select>
-
-      <select [(ngModel)]="filtroPrioridad">
-        <option value="">Todas las prioridades</option>
-        <option value="Alta">Alta</option>
-        <option value="Media">Media</option>
-        <option value="Baja">Baja</option>
-      </select>
-
-      <select [(ngModel)]="filtroAgente">
-        <option value="">Todos los agentes</option>
-        <option value="María">María</option>
-        <option value="Carlos">Carlos</option>
-        <option value="Sin asignar">Sin asignar</option>
-      </select>
-
-    </section>
-
-    <section class="tickets-card">
-
-      <div class="card-header">
-        <div>
-          <h3>Tickets</h3>
-
-          <span>
-            {{ ticketsFiltrados().length }} solicitudes encontradas
-          </span>
-
-        </div>
-      </div>
-
-      <div class="table-container">
-
-        <table>
-
-          <thead>
-
-            <tr>
-              <th>ID</th>
-              <th>Ticket</th>
-              <th>Solicitante</th>
-              <th>Prioridad</th>
-              <th>Estado</th>
-              <th>Agente</th>
-              <th>Fecha</th>
-            </tr>
-
-          </thead>
-
-          <tbody>
-
-            @for (ticket of ticketsPaginados(); track ticket.id) {
-
-              <tr>
-
-                <td>
-                  {{ ticket.id }}
-                </td>
-
-                <td>
-
-                  <strong>
-                    {{ ticket.titulo }}
-                  </strong>
-
-                  <small>
-                    {{ ticket.descripcion }}
-                  </small>
-
-                </td>
-
-                <td>
-                  {{ ticket.solicitante }}
-                </td>
-
-                <td>
-
-                  <span
-                    class="priority"
-                    [class.high]="ticket.prioridad === 'Alta'"
-                    [class.medium]="ticket.prioridad === 'Media'"
-                    [class.low]="ticket.prioridad === 'Baja'"
-                  >
-                    {{ ticket.prioridad }}
-                  </span>
-
-                </td>
-
-                <td>
-
-                  <span
-                    class="status"
-                    [class.open]="ticket.estado === 'Abierto'"
-                    [class.progress]="ticket.estado === 'En progreso'"
-                    [class.resolved]="ticket.estado === 'Resuelto'"
-                  >
-                    {{ ticket.estado }}
-                  </span>
-
-                </td>
-
-                <td>
-                  {{ ticket.agente }}
-                </td>
-
-                <td>
-                  {{ ticket.fecha }}
-                </td>
-
-              </tr>
-
-            }
-
-            @if (ticketsPaginados().length === 0) {
-
-              <tr>
-
-                <td
-                  colspan="7"
-                  style="text-align: center; padding: 30px;"
-                >
-                  No se encontraron tickets
-                </td>
-
-              </tr>
-
-            }
-
-          </tbody>
-
-        </table>
-
-      </div>
-
-      <div class="pagination">
-
-        <span>
-          Mostrando {{ ticketsPaginados().length }}
-          de {{ ticketsFiltrados().length }} tickets
+      <div class="topbar-right">
+        <span class="system-status">
+          <span class="online-dot"></span>
+          Sistema activo
         </span>
+        <button class="icon-button" title="Notificaciones">♧</button>
+        <div class="avatar top-avatar">NM</div>
+      </div>
+    </header>
 
+    <section class="page-content">
+      <div class="page-heading">
         <div>
-
-          <button
-            (click)="cambiarPagina(paginaActual - 1)"
-            [disabled]="paginaActual === 1"
-          >
-            ‹
-          </button>
-
-          @for (
-            pagina of [].constructor(totalPaginas());
-            track $index
-          ) {
-
-            <button
-              [class.active]="paginaActual === $index + 1"
-              (click)="cambiarPagina($index + 1)"
-            >
-              {{ $index + 1 }}
-            </button>
-
-          }
-
-          <button
-            (click)="cambiarPagina(paginaActual + 1)"
-            [disabled]="paginaActual === totalPaginas()"
-          >
-            ›
-          </button>
-
+          <p class="eyebrow">CENTRO DE SOPORTE</p>
+          <h1>Bandeja de tickets</h1>
+          <p class="page-subtitle">
+            Administra solicitudes, asignaciones y prioridades
+            desde un solo lugar.
+          </p>
         </div>
 
+        <button class="primary-button" (click)="abrirFormulario()">
+          <span>＋</span> Nuevo ticket
+        </button>
       </div>
 
-    </section>
+      <section class="stats-grid">
+        <article class="stat-card">
+          <div class="stat-top">
+            <span class="stat-label">Total de tickets</span>
+            <span class="stat-icon dark-icon">▤</span>
+          </div>
+          <strong class="stat-number">{{ tickets.length }}</strong>
+          <span class="stat-description">Tickets registrados</span>
+        </article>
 
-  </main>
+        <article class="stat-card">
+          <div class="stat-top">
+            <span class="stat-label">Abiertos</span>
+            <span class="stat-icon yellow-icon">◷</span>
+          </div>
+          <strong class="stat-number">{{ contarEstado('Abierto') }}</strong>
+          <span class="stat-description">Esperando atención</span>
+        </article>
 
-  @if (mostrarFormulario) {
+        <article class="stat-card">
+          <div class="stat-top">
+            <span class="stat-label">En progreso</span>
+            <span class="stat-icon blue-icon">↻</span>
+          </div>
+          <strong class="stat-number">
+            {{ contarEstado('En progreso') }}
+          </strong>
+          <span class="stat-description">En proceso de resolución</span>
+        </article>
 
-    <div class="modal">
+        <article class="stat-card">
+          <div class="stat-top">
+            <span class="stat-label">Resueltos</span>
+            <span class="stat-icon green-icon">✓</span>
+          </div>
+          <strong class="stat-number">{{ contarEstado('Resuelto') }}</strong>
+          <span class="stat-description">Casos completados</span>
+        </article>
+      </section>
 
-      <div class="modal-content">
-
-        <div class="modal-header">
-
+      <section class="ticket-section">
+        <div class="section-heading">
           <div>
-            <h2>Nuevo ticket</h2>
-            <p>Registra una nueva solicitud de soporte</p>
+            <h2>Todos los tickets</h2>
+            <p>Consulta y administra las solicitudes de soporte.</p>
           </div>
 
-          <button
-            class="close"
-            (click)="cerrarFormulario()"
-          >
-            ×
+          <button class="secondary-button" (click)="exportarVista()">
+            ⇩ Exportar CSV
           </button>
-
         </div>
 
-        <div class="form">
+        <div class="tabs">
+          <button
+            [class.active]="activeTab === 'Mis tickets'"
+            (click)="cambiarPestana('Mis tickets')">
+            Todos los tickets
+          </button>
 
-          <label>Título</label>
+          <button
+            [class.active]="activeTab === 'Mis colas'"
+            (click)="cambiarPestana('Mis colas')">
+            Mis colas
+          </button>
 
-          <input
-            type="text"
-            [(ngModel)]="nuevoTicket.titulo"
-            placeholder="Ej. No puedo iniciar sesión"
-          >
+          <button
+            [class.active]="activeTab === 'Sin asignar'"
+            (click)="cambiarPestana('Sin asignar')">
+            Sin asignar
+            <span class="tab-count">{{ contarSinAsignar() }}</span>
+          </button>
 
-          <label>Descripción</label>
+          <button
+            [class.active]="activeTab === 'Riesgo de SLA'"
+            (click)="cambiarPestana('Riesgo de SLA')">
+            Riesgo de SLA
+          </button>
 
-          <textarea
-            [(ngModel)]="nuevoTicket.descripcion"
-            placeholder="Describe el problema"
-          ></textarea>
+          <button
+            [class.active]="activeTab === 'Vencidos'"
+            (click)="cambiarPestana('Vencidos')">
+            Vencidos
+          </button>
+        </div>
 
-          <label>Solicitante</label>
+        <div class="filters">
+          <div class="search-box">
+            <span>⌕</span>
+            <input
+              type="text"
+              placeholder="Buscar por título, ID, solicitante..."
+              [(ngModel)]="busqueda"
+              (ngModelChange)="paginaActual = 1">
+          </div>
 
-          <input
-            type="text"
-            [(ngModel)]="nuevoTicket.solicitante"
-            placeholder="Nombre del solicitante"
-          >
+          <select
+            aria-label="Filtrar por estado"
+            [(ngModel)]="filtroEstado"
+            (ngModelChange)="paginaActual = 1">
+            <option value="">Todos los estados</option>
+            <option value="Activos">Activos</option>
+            <option value="Abierto">Abierto</option>
+            <option value="En progreso">En progreso</option>
+            <option value="Resuelto">Resuelto</option>
+          </select>
 
-          <label>Prioridad</label>
-
-          <select [(ngModel)]="nuevoTicket.prioridad">
-
+          <select
+            aria-label="Filtrar por prioridad"
+            [(ngModel)]="filtroPrioridad"
+            (ngModelChange)="paginaActual = 1">
+            <option value="">Todas las prioridades</option>
             <option value="Alta">Alta</option>
             <option value="Media">Media</option>
             <option value="Baja">Baja</option>
-
           </select>
 
+          <select
+            aria-label="Filtrar por agente"
+            [(ngModel)]="filtroAgente"
+            (ngModelChange)="paginaActual = 1">
+            <option value="">Todos los agentes</option>
+            @for (agente of agentes; track agente) {
+              <option [value]="agente">{{ agente }}</option>
+            }
+          </select>
         </div>
 
-        <div class="modal-actions">
+        <div class="table-wrapper">
+          <table class="tickets-table">
+            <thead>
+              <tr>
+                <th>TICKET</th>
+                <th>SOLICITANTE</th>
+                <th>PRIORIDAD</th>
+                <th>ESTADO</th>
+                <th>AGENTE</th>
+                <th>ACTIVIDAD / SLA</th>
+                <th>ACCIONES</th>
+              </tr>
+            </thead>
 
-          <button
-            class="cancel"
-            (click)="cerrarFormulario()"
-          >
-            Cancelar
-          </button>
+            <tbody>
+              @for (ticket of ticketsPaginados(); track ticket.id) {
+                <tr>
+                  <td class="ticket-cell">
+                    <button
+                      class="ticket-title"
+                      (click)="abrirDetalle(ticket)">
+                      {{ ticket.titulo }}
+                    </button>
+                    <span class="ticket-id">{{ ticket.id }}</span>
+                    <span class="ticket-description">
+                      {{ ticket.descripcion }}
+                    </span>
+                  </td>
 
-          <button
-            class="create"
-            (click)="crearTicket()"
-          >
-            Crear ticket
-          </button>
+                  <td>
+                    <div class="requester">
+                      <div class="avatar small-avatar">
+                        {{ ticket.solicitante.charAt(0) }}
+                      </div>
+                      <span>{{ ticket.solicitante }}</span>
+                    </div>
+                  </td>
 
+                  <td>
+                    <span
+                      class="priority-badge"
+                      [class.priority-high]="ticket.prioridad === 'Alta'"
+                      [class.priority-medium]="ticket.prioridad === 'Media'"
+                      [class.priority-low]="ticket.prioridad === 'Baja'">
+                      {{ etiquetaPrioridad(ticket.prioridad) }}
+                    </span>
+                  </td>
+
+                  <td>
+                    <span
+                      class="status-badge"
+                      [class.status-open]="ticket.estado === 'Abierto'"
+                      [class.status-progress]="ticket.estado === 'En progreso'"
+                      [class.status-resolved]="ticket.estado === 'Resuelto'">
+                      <span class="status-dot"></span>
+                      {{ etiquetaEstado(ticket.estado) }}
+                    </span>
+                  </td>
+
+                  <td>
+                    <span class="agent-name">
+                      {{ ticket.agente }}
+                    </span>
+                    <button
+                      class="assign-link"
+                      (click)="abrirAsignacion(ticket)">
+                      {{ ticket.agente === 'Sin asignar'
+                        ? 'Asignar agente'
+                        : 'Cambiar agente' }}
+                    </button>
+                  </td>
+
+                  <td>
+                    <span class="activity-time">
+                      {{ actividadTicket(ticket) }}
+                    </span>
+                    <span
+                      class="sla-text"
+                      [class.sla-danger]="ticket.estado !== 'Resuelto' && ticket.prioridad === 'Alta'">
+                      {{ textoSLA(ticket) }}
+                    </span>
+                    <div class="sla-track">
+                      <div
+                        class="sla-progress"
+                        [class.sla-progress-danger]="progresoSLA(ticket) === 100"
+                        [style.width.%]="progresoSLA(ticket)">
+                      </div>
+                    </div>
+                  </td>
+
+                  <td>
+                    <button
+                      class="action-button"
+                      title="Ver detalle"
+                      (click)="abrirDetalle(ticket)">
+                      ↗
+                    </button>
+                    <button
+                      class="action-button"
+                      title="Asignar agente"
+                      (click)="abrirAsignacion(ticket)">
+                      ⋯
+                    </button>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="7" class="empty-state">
+                    <span>⌕</span>
+                    <strong>No se encontraron tickets</strong>
+                    <p>Prueba cambiando los filtros de búsqueda.</p>
+                    <button
+                      class="secondary-button"
+                      (click)="busqueda = ''; filtroEstado = ''; filtroPrioridad = ''; filtroAgente = ''; cambiarPestana('Mis tickets')">
+                      Limpiar filtros
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
         </div>
 
-      </div>
+        <div class="pagination">
+          <span>
+            Mostrando
+            {{ ticketsFiltrados().length === 0
+              ? 0
+              : (paginaActual - 1) * ticketsPorPagina + 1 }}
+            –
+            {{ paginaActual * ticketsPorPagina < ticketsFiltrados().length
+              ? paginaActual * ticketsPorPagina
+              : ticketsFiltrados().length }}
+            de {{ ticketsFiltrados().length }} tickets
+          </span>
 
+          <div class="pagination-buttons">
+            <button
+              class="page-button"
+              [disabled]="paginaActual <= 1"
+              (click)="cambiarPagina(paginaActual - 1)">
+              ← Anterior
+            </button>
+
+            <span class="page-number">
+              {{ paginaActual }} / {{ totalPaginas() || 1 }}
+            </span>
+
+            <button
+              class="page-button"
+              [disabled]="paginaActual >= totalPaginas()"
+              (click)="cambiarPagina(paginaActual + 1)">
+              Siguiente →
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <footer class="page-footer">
+        <span>© 2026 Sildra Support</span>
+        <span>Centro de operaciones · Soporte técnico</span>
+      </footer>
+    </section>
+  </main>
+
+  @if (mostrarFormulario) {
+    <div class="modal" (click)="cerrarFormulario()">
+      <section
+        class="modal-content"
+        (click)="$event.stopPropagation()">
+        <header class="modal-header">
+          <div>
+            <span class="eyebrow">NUEVA SOLICITUD</span>
+            <h2>Crear ticket</h2>
+            <p>Completa la información para registrar un caso.</p>
+          </div>
+          <button class="close" (click)="cerrarFormulario()">×</button>
+        </header>
+
+        <form class="form" (ngSubmit)="crearTicket()">
+          <label for="nuevo-titulo">Título del ticket</label>
+          <input
+            id="nuevo-titulo"
+            name="titulo"
+            [(ngModel)]="nuevoTicket.titulo"
+            placeholder="Ej. Error al iniciar sesión"
+            required>
+
+          <label for="nuevo-descripcion">Descripción</label>
+          <textarea
+            id="nuevo-descripcion"
+            name="descripcion"
+            [(ngModel)]="nuevoTicket.descripcion"
+            placeholder="Describe el problema..."
+            rows="4"
+            required>
+          </textarea>
+
+          <label for="nuevo-solicitante">Solicitante</label>
+          <input
+            id="nuevo-solicitante"
+            name="solicitante"
+            [(ngModel)]="nuevoTicket.solicitante"
+            placeholder="Nombre del solicitante"
+            required>
+
+          <label for="nueva-prioridad">Prioridad</label>
+          <select
+            id="nueva-prioridad"
+            name="prioridad"
+            [(ngModel)]="nuevoTicket.prioridad">
+            <option value="Alta">Alta</option>
+            <option value="Media">Media</option>
+            <option value="Baja">Baja</option>
+          </select>
+
+          <div class="modal-actions">
+            <button
+              type="button"
+              class="cancel"
+              (click)="cerrarFormulario()">
+              Cancelar
+            </button>
+            <button type="submit" class="create">
+              Crear ticket
+            </button>
+          </div>
+        </form>
+      </section>
     </div>
-
   }
 
+  @if (mostrarDetalle && ticketSeleccionado) {
+    <div class="modal" (click)="cerrarDetalle()">
+      <section
+        class="modal-content detail-modal"
+        (click)="$event.stopPropagation()">
+        <header class="modal-header">
+          <div>
+            <span class="eyebrow">INFORMACIÓN DEL CASO</span>
+            <h2>Detalle del ticket</h2>
+            <p>{{ ticketSeleccionado.id }}</p>
+          </div>
+          <button class="close" (click)="cerrarDetalle()">×</button>
+        </header>
+
+        <div class="detail-content">
+          <div class="detail-title-row">
+            <h3>{{ ticketSeleccionado.titulo }}</h3>
+            <span
+              class="priority-badge"
+              [class.priority-high]="ticketSeleccionado.prioridad === 'Alta'"
+              [class.priority-medium]="ticketSeleccionado.prioridad === 'Media'"
+              [class.priority-low]="ticketSeleccionado.prioridad === 'Baja'">
+              {{ etiquetaPrioridad(ticketSeleccionado.prioridad) }}
+            </span>
+          </div>
+
+          <p class="detail-description">
+            {{ ticketSeleccionado.descripcion }}
+          </p>
+
+          <div class="detail-section-title">Datos de la solicitud</div>
+
+          <div class="detail-grid">
+            <div class="detail-item">
+              <label>Solicitante</label>
+              <strong>{{ ticketSeleccionado.solicitante }}</strong>
+            </div>
+
+            <div class="detail-item">
+              <label>Agente asignado</label>
+              <strong>{{ ticketSeleccionado.agente }}</strong>
+            </div>
+
+            <div class="detail-item">
+              <label>Estado</label>
+              <strong>{{ ticketSeleccionado.estado }}</strong>
+            </div>
+
+            <div class="detail-item">
+              <label>Fecha de creación</label>
+              <strong>{{ ticketSeleccionado.fecha }}</strong>
+            </div>
+
+            <div class="detail-item">
+              <label>Categoría</label>
+              <strong>{{ categoriaTicket(ticketSeleccionado) }}</strong>
+            </div>
+
+            <div class="detail-item">
+              <label>Organización</label>
+              <strong>{{ organizacionTicket(ticketSeleccionado) }}</strong>
+            </div>
+
+            <div class="detail-item">
+              <label>Sucursal</label>
+              <strong>{{ sucursalTicket(ticketSeleccionado) }}</strong>
+            </div>
+
+            <div class="detail-item">
+              <label>SLA</label>
+              <strong>{{ textoSLA(ticketSeleccionado) }}</strong>
+            </div>
+          </div>
+
+          <div class="detail-sla">
+            <div class="sla-heading">
+              <span>Progreso del SLA</span>
+              <strong>{{ progresoSLA(ticketSeleccionado) }}%</strong>
+            </div>
+            <div class="sla-track detail-sla-track">
+              <div
+                class="sla-progress"
+                [class.sla-progress-danger]="progresoSLA(ticketSeleccionado) === 100"
+                [style.width.%]="progresoSLA(ticketSeleccionado)">
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button class="cancel" (click)="cerrarDetalle()">
+              Cerrar
+            </button>
+            <button class="create" (click)="asignarDesdeDetalle()">
+              Cambiar asignación
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+  }
+
+  @if (mostrarAsignacion && ticketSeleccionado) {
+    <div class="modal" (click)="cerrarAsignacion()">
+      <section
+        class="modal-content"
+        (click)="$event.stopPropagation()">
+        <header class="modal-header">
+          <div>
+            <span class="eyebrow">GESTIÓN DE EQUIPO</span>
+            <h2>Asignar ticket</h2>
+            <p>
+              {{ ticketSeleccionado.id }} ·
+              {{ ticketSeleccionado.titulo }}
+            </p>
+          </div>
+          <button class="close" (click)="cerrarAsignacion()">×</button>
+        </header>
+
+        <div class="form">
+          <label for="agente-responsable">
+            Agente responsable
+          </label>
+
+          <select
+            id="agente-responsable"
+            [(ngModel)]="agenteSeleccionado"
+            name="agenteResponsable">
+            <option value="">Selecciona un agente</option>
+            @for (agente of agentes; track agente) {
+              <option [value]="agente">{{ agente }}</option>
+            }
+          </select>
+
+          <div class="assignment-note">
+            <span>ⓘ</span>
+            El ticket aparecerá con el nuevo agente asignado
+            al guardar los cambios.
+          </div>
+
+          <div class="modal-actions">
+            <button class="cancel" (click)="cerrarAsignacion()">
+              Cancelar
+            </button>
+            <button class="create" (click)="asignarAgente()">
+              Guardar asignación
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+  }
 </div>
