@@ -1,0 +1,197 @@
+
+<div class="call-page">
+
+  <header class="page-heading">
+    <div>
+      <a routerLink="/dashboard" class="back-link">
+        ← Volver a tickets
+      </a>
+
+      <div class="eyebrow">CENTRO DE SOPORTE / LLAMADAS</div>
+      <h1>Detalle de llamada</h1>
+      <p>Consulta la información y gestiona la llamada del cliente.</p>
+    </div>
+
+    <span class="call-id">#{{ llamada.id }}</span>
+  </header>
+
+  <section class="call-banner">
+    <div class="caller-avatar">
+      {{ llamada.cliente.charAt(0) }}
+    </div>
+
+    <div class="caller-info">
+      <span class="section-label">CLIENTE</span>
+      <h2>{{ llamada.cliente }}</h2>
+      <p>{{ llamada.telefono }}</p>
+      <p>{{ llamada.email }}</p>
+    </div>
+
+    <div class="call-status">
+      <span
+        class="status-dot"
+        [class.finished]="llamadaFinalizada">
+      </span>
+      {{ llamada.estado }}
+      <small>{{ llamada.direccion }}</small>
+    </div>
+  </section>
+
+  <div class="call-layout">
+
+    <main class="main-column">
+
+      <section class="panel">
+        <div class="panel-heading">
+          <div>
+            <span class="section-label">INFORMACIÓN</span>
+            <h2>Resumen de la llamada</h2>
+          </div>
+        </div>
+
+        <div class="info-grid">
+
+          <div class="info-item">
+            <span>Asunto</span>
+            <strong>{{ llamada.asunto }}</strong>
+          </div>
+
+          <div class="info-item">
+            <span>Agente asignado</span>
+            <strong>{{ llamada.agente }}</strong>
+          </div>
+
+          <div class="info-item">
+            <span>Hora de inicio</span>
+            <strong>{{ llamada.inicio }}</strong>
+          </div>
+
+          <div class="info-item">
+            <span>Duración registrada</span>
+            <strong>{{ llamada.duracion }}</strong>
+          </div>
+
+          <div class="info-item">
+            <span>Categoría</span>
+            <strong>{{ llamada.categoria }}</strong>
+          </div>
+
+          <div class="info-item">
+            <span>Prioridad</span>
+            <strong class="priority">{{ llamada.prioridad }}</strong>
+          </div>
+
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-heading">
+          <div>
+            <span class="section-label">SEGUIMIENTO</span>
+            <h2>Notas de la llamada</h2>
+          </div>
+
+          <span class="note-count">{{ notas.length }} notas</span>
+        </div>
+
+        <form class="note-form" (ngSubmit)="agregarNota()">
+          <label for="nuevaNota">Añadir una nota</label>
+
+          <textarea
+            id="nuevaNota"
+            name="nuevaNota"
+            [(ngModel)]="nuevaNota"
+            placeholder="Escribe aquí los detalles importantes..."
+            rows="3">
+          </textarea>
+
+          <div class="note-form-footer">
+            <small>Las notas se muestran en esta sesión.</small>
+
+            <button type="submit" class="primary-button">
+              + Añadir nota
+            </button>
+          </div>
+        </form>
+
+        <div class="timeline">
+          <article class="note" *ngFor="let nota of notas">
+            <div class="timeline-marker"></div>
+
+            <div class="note-content">
+              <div class="note-meta">
+                <strong>{{ nota.autor }}</strong>
+                <time>{{ nota.hora }}</time>
+              </div>
+
+              <p>{{ nota.texto }}</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+    </main>
+
+    <aside class="side-column">
+
+      <section class="panel">
+        <span class="section-label">ACCIONES</span>
+        <h2>Gestionar llamada</h2>
+
+        <p class="action-description">
+          Selecciona la acción que deseas realizar.
+        </p>
+
+        <a
+          class="action-button transfer-button"
+          routerLink="/llamadas/transferencia"
+          [class.disabled-link]="llamadaFinalizada"
+          [attr.aria-disabled]="llamadaFinalizada">
+          <span class="action-icon">⇄</span>
+          <span>
+            <strong>Transferir llamada</strong>
+            <small>Derivar a otro agente</small>
+          </span>
+          <span class="action-arrow">›</span>
+        </a>
+
+        <a
+          class="action-button"
+          routerLink="/clasificacion">
+          <span class="action-icon">▤</span>
+          <span>
+            <strong>Revisar clasificación</strong>
+            <small>Ver categoría y prioridad</small>
+          </span>
+          <span class="action-arrow">›</span>
+        </a>
+
+        <button
+          type="button"
+          class="finish-button"
+          [disabled]="llamadaFinalizada"
+          (click)="finalizarLlamada()">
+          {{ llamadaFinalizada ? 'Llamada finalizada' : 'Finalizar llamada' }}
+        </button>
+
+        <p class="finish-message" *ngIf="llamadaFinalizada">
+          La llamada se ha marcado como finalizada.
+        </p>
+      </section>
+
+      <section class="panel tip-panel">
+        <div class="tip-icon">i</div>
+        <div>
+          <h3>Información importante</h3>
+          <p>
+            Registra los detalles relevantes antes de finalizar la llamada
+            para mantener un historial claro de la atención.
+          </p>
+        </div>
+      </section>
+
+    </aside>
+
+  </div>
+
+</div>
