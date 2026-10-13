@@ -1,8 +1,10 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router, RouterOutlet } from '@angular/router';
 
 interface Ticket {
-  id: string;
+  id: number;
   titulo: string;
   descripcion: string;
   solicitante: string;
@@ -13,21 +15,25 @@ interface Ticket {
 }
 
 @Component({
-
   selector: 'app-root',
-
-  imports: [FormsModule],
-
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterOutlet
+  ],
   templateUrl: './app.html',
-
   styleUrl: './app.css'
-
 })
-
-
 export class App {
-
+  seccionActual = 'dashboard';
+  mostrarBandeja = true;
   mostrarFormulario = false;
+
+  busqueda = '';
+  filtroEstado = '';
+  filtroPrioridad = '';
+  filtroAgente = '';
 
   nuevoTicket = {
     titulo: '',
@@ -38,68 +44,149 @@ export class App {
 
   tickets: Ticket[] = [
     {
-      id: '#TK-001',
-      titulo: 'No puedo acceder al sistema',
-      descripcion: 'Problema con las credenciales de acceso',
+      id: 1001,
+      titulo: 'No puedo iniciar sesión',
+      descripcion: 'Error al entrar en la plataforma',
       solicitante: 'Juan Pérez',
       prioridad: 'Alta',
       estado: 'Abierto',
-      agente: 'María',
-      fecha: '06/10/2026'
+      agente: 'Agente 1',
+      fecha: '13/10/2026'
     },
     {
-      id: '#TK-002',
-      titulo: 'Error al generar reporte',
-      descripcion: 'El reporte muestra información incorrecta',
-      solicitante: 'Ana Rodríguez',
+      id: 1002,
+      titulo: 'Problema con el correo',
+      descripcion: 'No llegan los mensajes',
+      solicitante: 'María Gómez',
       prioridad: 'Media',
       estado: 'En progreso',
-      agente: 'Carlos',
-      fecha: '05/10/2026'
+      agente: 'Agente 2',
+      fecha: '13/10/2026'
     },
     {
-      id: '#TK-003',
-      titulo: 'Solicitud de acceso',
-      descripcion: 'Necesito acceso al módulo de ventas',
-      solicitante: 'Pedro Gómez',
+      id: 1003,
+      titulo: 'Actualizar información',
+      descripcion: 'Necesito actualizar mis datos',
+      solicitante: 'Pedro Díaz',
       prioridad: 'Baja',
       estado: 'Resuelto',
-      agente: 'María',
-      fecha: '04/10/2026'
+      agente: 'Agente 1',
+      fecha: '12/10/2026'
+    },
+    {
+      id: 1004,
+      titulo: 'Sistema lento',
+      descripcion: 'La página tarda en cargar',
+      solicitante: 'Ana Rodríguez',
+      prioridad: 'Alta',
+      estado: 'Abierto',
+      agente: 'Agente 2',
+      fecha: '12/10/2026'
     }
   ];
 
-  abrirFormulario() {
+  constructor(private router: Router) {}
+
+  // ABRIR BANDEJA DE TICKETS
+  irABandeja(): void {
+    this.seccionActual = 'dashboard';
+    this.mostrarBandeja = true;
+    this.mostrarFormulario = false;
+
+    this.router.navigateByUrl('/');
+  }
+
+  // ABRIR LA SECCIÓN TICKETS
+  irATickets(): void {
+    this.seccionActual = 'tickets';
+    this.mostrarBandeja = true;
+    this.mostrarFormulario = false;
+
+    this.router.navigateByUrl('/');
+  }
+
+  // ABRIR DETALLES DE LLAMADAS
+  irADetallesLlamadas(): void {
+    this.seccionActual = 'llamadas';
+    this.mostrarBandeja = false;
+    this.mostrarFormulario = false;
+
+    this.router.navigateByUrl('/llamadas/detalle');
+  }
+
+  // FILTRAR TICKETS
+  get ticketsFiltrados(): Ticket[] {
+    const texto = this.busqueda.toLowerCase().trim();
+
+    return this.tickets.filter(ticket => {
+      const coincideBusqueda =
+        ticket.titulo.toLowerCase().includes(texto) ||
+        ticket.descripcion.toLowerCase().includes(texto) ||
+        ticket.solicitante.toLowerCase().includes(texto) ||
+        ticket.id.toString().includes(texto);
+
+      const coincideEstado =
+        !this.filtroEstado ||
+        ticket.estado === this.filtroEstado;
+
+      const coincidePrioridad =
+        !this.filtroPrioridad ||
+        ticket.prioridad === this.filtroPrioridad;
+
+      const coincideAgente =
+        !this.filtroAgente ||
+        ticket.agente === this.filtroAgente;
+
+      return coincideBusqueda &&
+        coincideEstado &&
+        coincidePrioridad &&
+        coincideAgente;
+    });
+  }
+
+  // CONTAR POR ESTADO
+  contarEstado(estado: string): number {
+    return this.tickets.filter(
+      ticket => ticket.estado === estado
+    ).length;
+  }
+
+  // ABRIR FORMULARIO
+  abrirFormulario(): void {
     this.mostrarFormulario = true;
   }
 
-  cerrarFormulario() {
+  // CERRAR FORMULARIO
+  cerrarFormulario(): void {
     this.mostrarFormulario = false;
   }
 
-  crearTicket() {
-
+  // CREAR TICKET
+  crearTicket(): void {
     if (
       !this.nuevoTicket.titulo.trim() ||
       !this.nuevoTicket.descripcion.trim() ||
       !this.nuevoTicket.solicitante.trim()
     ) {
-      alert('Completa todos los campos');
+      alert('Completa todos los campos del formulario.');
       return;
     }
 
     const nuevo: Ticket = {
-      id: '#TK-' + String(this.tickets.length + 1).padStart(3, '0'),
-      titulo: this.nuevoTicket.titulo,
-      descripcion: this.nuevoTicket.descripcion,
-      solicitante: this.nuevoTicket.solicitante,
+      id: this.tickets.length > 0
+        ? Math.max(...this.tickets.map(t => t.id)) + 1
+        : 1001,
+
+      titulo: this.nuevoTicket.titulo.trim(),
+      descripcion: this.nuevoTicket.descripcion.trim(),
+      solicitante: this.nuevoTicket.solicitante.trim(),
       prioridad: this.nuevoTicket.prioridad,
       estado: 'Abierto',
-      agente: 'Sin asignar',
+      agente: 'Agente 1',
       fecha: new Date().toLocaleDateString('es-DO')
     };
 
-    this.tickets.unshift(nuevo);
+    this.tickets = [nuevo, ...this.tickets];
 
     this.nuevoTicket = {
       titulo: '',
@@ -109,5 +196,7 @@ export class App {
     };
 
     this.mostrarFormulario = false;
+
+    alert('¡Ticket creado correctamente!');
   }
 }

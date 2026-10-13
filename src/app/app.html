@@ -1,6 +1,7 @@
+
 <div class="sildra">
 
-  <header class="topbar">
+  <aside class="sidebar">
     <div class="logo">
       <div class="logo-icon">S</div>
       <div>
@@ -9,241 +10,321 @@
       </div>
     </div>
 
-    <div class="user-area">
-      <span>Agente</span>
+    <div class="menu-label">MENÚ PRINCIPAL</div>
+
+    <nav class="navigation">
+      <button
+        type="button"
+        [class.active]="mostrarBandeja && seccionActual === 'dashboard'"
+        (click)="irABandeja()">
+        <span class="menu-icon">▤</span>
+        <span>Bandeja de tickets</span>
+      </button>
+
+      <button
+        type="button"
+        [class.active]="seccionActual === 'llamadas'"
+        (click)="irADetallesLlamadas()">
+        <span class="menu-icon">☎</span>
+        <span>Detalles de llamadas</span>
+      </button>
+
+      <button
+        type="button"
+        [class.active]="mostrarBandeja && seccionActual === 'tickets'"
+        (click)="irATickets()">
+        <span class="menu-icon">🎫</span>
+        <span>Tickets</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
       <div class="avatar">A</div>
+      <div class="agent-info">
+        <strong>Agente</strong>
+        <span>Equipo de soporte</span>
+      </div>
+      <span class="online-dot"></span>
     </div>
-  </header>
+  </aside>
 
-  <main class="content">
+  <div class="main-area">
 
-    <div class="page-header">
-      <div>
-        <h2>Bandeja de tickets</h2>
-        <p>Gestiona y da seguimiento a las solicitudes de soporte</p>
+    <header class="topbar">
+      <div class="topbar-heading">
+        <span class="eyebrow">CENTRO DE OPERACIONES</span>
+        <h2>
+          @if (seccionActual === 'dashboard') {
+            Bandeja de tickets
+          } @else if (seccionActual === 'tickets') {
+            Gestión de tickets
+          } @else {
+            Detalles de llamadas
+          }
+        </h2>
       </div>
-<button class="new-ticket" (click)="abrirFormulario()">
-  + Nuevo ticket
-</button>
+
+      <div class="user-area">
+        <span class="user-status">En línea</span>
+        <div class="avatar top-avatar">A</div>
+      </div>
+    </header>
+
+    <div class="workspace">
+
+      @if (mostrarBandeja) {
+
+        <main class="content">
+
+          <div class="page-header">
+            <div>
+              <h2>
+                {{ seccionActual === 'dashboard'
+                  ? 'Bandeja de tickets'
+                  : 'Gestión de tickets' }}
+              </h2>
+              <p>
+                Gestiona y da seguimiento a las solicitudes de soporte.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              class="new-ticket"
+              (click)="abrirFormulario()">
+              <span>＋</span> Nuevo ticket
+            </button>
+          </div>
+
+          @if (seccionActual === 'dashboard') {
+            <section class="counters">
+
+              <div class="counter">
+                <div class="counter-symbol all-symbol">▤</div>
+                <span class="counter-title">Todos los tickets</span>
+                <strong>{{ tickets.length }}</strong>
+              </div>
+
+              <div class="counter">
+                <div class="counter-symbol open-symbol">◷</div>
+                <span class="counter-title">Abiertos</span>
+                <strong>{{ contarEstado('Abierto') }}</strong>
+              </div>
+
+              <div class="counter">
+                <div class="counter-symbol progress-symbol">↻</div>
+                <span class="counter-title">En progreso</span>
+                <strong>{{ contarEstado('En progreso') }}</strong>
+              </div>
+
+              <div class="counter">
+                <div class="counter-symbol resolved-symbol">✓</div>
+                <span class="counter-title">Resueltos</span>
+                <strong>{{ contarEstado('Resuelto') }}</strong>
+              </div>
+
+            </section>
+
+            <section class="filters">
+              <div class="search">
+                <span>⌕</span>
+                <input
+                  type="text"
+                  placeholder="Buscar tickets..."
+                  [(ngModel)]="busqueda">
+              </div>
+
+              <select [(ngModel)]="filtroEstado">
+                <option value="">Todos los estados</option>
+                <option value="Abierto">Abierto</option>
+                <option value="En progreso">En progreso</option>
+                <option value="Resuelto">Resuelto</option>
+              </select>
+
+              <select [(ngModel)]="filtroPrioridad">
+                <option value="">Todas las prioridades</option>
+                <option value="Alta">Alta</option>
+                <option value="Media">Media</option>
+                <option value="Baja">Baja</option>
+              </select>
+
+              <select [(ngModel)]="filtroAgente">
+                <option value="">Todos los agentes</option>
+                <option value="Agente 1">Agente 1</option>
+                <option value="Agente 2">Agente 2</option>
+              </select>
+            </section>
+          }
+
+          <section class="tickets-card">
+            <div class="card-header">
+              <div>
+                <h3>
+                  {{ seccionActual === 'dashboard'
+                    ? 'Solicitudes recientes'
+                    : 'Todos los tickets' }}
+                </h3>
+
+                <span>
+                  @if (seccionActual === 'dashboard') {
+                    {{ ticketsFiltrados.length }} solicitudes encontradas
+                  } @else {
+                    {{ tickets.length }} tickets registrados
+                  }
+                </span>
+              </div>
+            </div>
+
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Ticket</th>
+                    <th>Solicitante</th>
+                    <th>Prioridad</th>
+                    <th>Estado</th>
+                    <th>Agente</th>
+                    <th>Fecha</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  @for (
+                    ticket of (seccionActual === 'dashboard'
+                      ? ticketsFiltrados
+                      : tickets);
+                    track ticket.id
+                  ) {
+                    <tr>
+                      <td class="ticket-id">#{{ ticket.id }}</td>
+
+                      <td class="ticket-description">
+                        <strong>{{ ticket.titulo }}</strong>
+                        <small>{{ ticket.descripcion }}</small>
+                      </td>
+
+                      <td>{{ ticket.solicitante }}</td>
+
+                      <td>
+                        <span
+                          class="priority"
+                          [class.high]="ticket.prioridad === 'Alta'"
+                          [class.medium]="ticket.prioridad === 'Media'"
+                          [class.low]="ticket.prioridad === 'Baja'">
+                          {{ ticket.prioridad }}
+                        </span>
+                      </td>
+
+                      <td>
+                        <span
+                          class="status"
+                          [class.open]="ticket.estado === 'Abierto'"
+                          [class.progress]="ticket.estado === 'En progreso'"
+                          [class.resolved]="ticket.estado === 'Resuelto'">
+                          {{ ticket.estado }}
+                        </span>
+                      </td>
+
+                      <td>{{ ticket.agente }}</td>
+                      <td>{{ ticket.fecha }}</td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td colspan="7" class="empty">
+                        No se encontraron tickets.
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            <div class="pagination">
+              Mostrando
+              {{ seccionActual === 'dashboard'
+                ? ticketsFiltrados.length
+                : tickets.length }}
+              tickets
+            </div>
+          </section>
+
+        </main>
+      }
+
+      @if (mostrarFormulario && mostrarBandeja) {
+        <div class="modal" (click)="cerrarFormulario()">
+          <div
+            class="modal-content"
+            (click)="$event.stopPropagation()">
+
+            <div class="modal-header">
+              <div>
+                <h2>Nuevo ticket</h2>
+                <p>Registra una nueva solicitud de soporte.</p>
+              </div>
+
+              <button
+                type="button"
+                class="close"
+                (click)="cerrarFormulario()">
+                ×
+              </button>
+            </div>
+
+            <div class="form">
+              <label for="titulo">Título</label>
+              <input
+                id="titulo"
+                type="text"
+                [(ngModel)]="nuevoTicket.titulo"
+                placeholder="Ej. No puedo iniciar sesión">
+
+              <label for="descripcion">Descripción</label>
+              <textarea
+                id="descripcion"
+                [(ngModel)]="nuevoTicket.descripcion"
+                placeholder="Describe el problema"></textarea>
+
+              <label for="solicitante">Solicitante</label>
+              <input
+                id="solicitante"
+                type="text"
+                [(ngModel)]="nuevoTicket.solicitante"
+                placeholder="Nombre del solicitante">
+
+              <label for="prioridad">Prioridad</label>
+              <select
+                id="prioridad"
+                [(ngModel)]="nuevoTicket.prioridad">
+                <option value="Alta">Alta</option>
+                <option value="Media">Media</option>
+                <option value="Baja">Baja</option>
+              </select>
+            </div>
+
+            <div class="modal-actions">
+              <button
+                type="button"
+                class="cancel"
+                (click)="cerrarFormulario()">
+                Cancelar
+              </button>
+
+              <button
+                type="button"
+                class="create"
+                (click)="crearTicket()">
+                Crear ticket
+              </button>
+            </div>
+
+          </div>
+        </div>
+      }
+
+      <router-outlet></router-outlet>
+
     </div>
-
-    <section class="counters">
-
-      <div class="counter">
-        <span class="counter-title">Todos</span>
-        <strong>128</strong>
-      </div>
-
-      <div class="counter">
-        <span class="counter-title">Abiertos</span>
-        <strong>42</strong>
-      </div>
-
-      <div class="counter">
-        <span class="counter-title">En progreso</span>
-        <strong>31</strong>
-      </div>
-
-      <div class="counter">
-        <span class="counter-title">Resueltos</span>
-        <strong>55</strong>
-      </div>
-
-    </section>
-
-    <section class="filters">
-
-      <div class="search">
-        <span>⌕</span>
-        <input
-          type="text"
-          placeholder="Buscar tickets..."
-        >
-      </div>
-
-      <select>
-        <option>Todos los estados</option>
-        <option>Abierto</option>
-        <option>En progreso</option>
-        <option>Resuelto</option>
-      </select>
-
-      <select>
-        <option>Todas las prioridades</option>
-        <option>Alta</option>
-        <option>Media</option>
-        <option>Baja</option>
-      </select>
-
-      <select>
-        <option>Todos los agentes</option>
-        <option>Agente 1</option>
-        <option>Agente 2</option>
-      </select>
-
-    </section>
-
-    <section class="tickets-card">
-
-      <div class="card-header">
-        <div>
-          <h3>Tickets</h3>
-          <span>128 solicitudes encontradas</span>
-        </div>
-      </div>
-
-      <div class="table-container">
-
-        <table>
-
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Ticket</th>
-              <th>Solicitante</th>
-              <th>Prioridad</th>
-              <th>Estado</th>
-              <th>Agente</th>
-              <th>Fecha</th>
-            </tr>
-          </thead>
-
-       <tbody>
-
-  @for (ticket of tickets; track ticket.id) {
-
-    <tr>
-
-      <td>{{ ticket.id }}</td>
-
-      <td>
-        <strong>{{ ticket.titulo }}</strong>
-        <small>{{ ticket.descripcion }}</small>
-      </td>
-
-      <td>{{ ticket.solicitante }}</td>
-
-      <td>
-        <span
-          class="priority"
-          [class.high]="ticket.prioridad === 'Alta'"
-          [class.medium]="ticket.prioridad === 'Media'"
-          [class.low]="ticket.prioridad === 'Baja'">
-          {{ ticket.prioridad }}
-        </span>
-      </td>
-
-      <td>
-        <span
-          class="status"
-          [class.open]="ticket.estado === 'Abierto'"
-          [class.progress]="ticket.estado === 'En progreso'"
-          [class.resolved]="ticket.estado === 'Resuelto'">
-          {{ ticket.estado }}
-        </span>
-      </td>
-
-      <td>{{ ticket.agente }}</td>
-
-      <td>{{ ticket.fecha }}</td>
-
-    </tr>
-
-  }
-
-</tbody>
-        </table>
-
-      </div>
-
-      <div class="pagination">
-        <span>Mostrando 1 - 4 de 128 tickets</span>
-
-        <div>
-          <button>‹</button>
-          <button class="active">1</button>
-          <button>2</button>
-          <button>3</button>
-          <button>...</button>
-          <button>32</button>
-          <button>›</button>
-        </div>
-      </div>
-
-    </section>
-
-  </main>
-@if (mostrarFormulario) {
-
-  <div class="modal">
-
-    <div class="modal-content">
-
-      <div class="modal-header">
-
-        <div>
-          <h2>Nuevo ticket</h2>
-          <p>Registra una nueva solicitud de soporte</p>
-        </div>
-
-        <button class="close" (click)="cerrarFormulario()">×</button>
-
-      </div>
-
-      <div class="form">
-
-        <label>Título</label>
-
-        <input
-          type="text"
-          [(ngModel)]="nuevoTicket.titulo"
-          placeholder="Ej. No puedo iniciar sesión">
-
-        <label>Descripción</label>
-
-        <textarea
-          [(ngModel)]="nuevoTicket.descripcion"
-          placeholder="Describe el problema">
-        </textarea>
-
-        <label>Solicitante</label>
-
-        <input
-          type="text"
-          [(ngModel)]="nuevoTicket.solicitante"
-          placeholder="Nombre del solicitante">
-
-        <label>Prioridad</label>
-
-        <select [(ngModel)]="nuevoTicket.prioridad">
-
-          <option>Alta</option>
-          <option>Media</option>
-          <option>Baja</option>
-
-        </select>
-
-      </div>
-
-      <div class="modal-actions">
-
-        <button
-          class="cancel"
-          (click)="cerrarFormulario()">
-          Cancelar
-        </button>
-
-        <button
-          class="create"
-          (click)="crearTicket()">
-          Crear ticket
-        </button>
-
-      </div>
-
-    </div>
-
   </div>
-
-}
 </div>
