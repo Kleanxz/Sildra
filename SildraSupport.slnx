@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SildraSupport.Api/SildraSupport.Api.csproj" />
+    <Project Path="src/SildraSupport.Application/SildraSupport.Application.csproj" />
+    <Project Path="src/SildraSupport.Domain/SildraSupport.Domain.csproj" />
+    <Project Path="src/SildraSupport.Infrastructure/SildraSupport.Infrastructure.csproj" />
+  </Folder>
+</Solution>

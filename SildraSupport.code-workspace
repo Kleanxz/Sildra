@@ -1,0 +1,13 @@
+{
+  "folders": [
+    {
+      "name": "Sildra Support",
+      "path": "."
+    }
+  ],
+  "settings": {
+    "window.title": "Sildra Support — Visual Studio Code",
+    "explorer.compactFolders": true,
+    "workbench.tree.indent": 16
+  }
+}
