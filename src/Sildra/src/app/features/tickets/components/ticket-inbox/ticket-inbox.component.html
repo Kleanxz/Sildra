@@ -1,0 +1,318 @@
+<section>
+  <div class="mb-7 flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <p class="mb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-amber-700">
+        Centro de atención
+      </p>
+      <h1 class="text-3xl font-bold tracking-tight text-slate-900 max-sm:text-2xl">
+        Bandeja de tickets
+      </h1>
+      <p class="mt-2 text-sm text-slate-500">
+        Administra solicitudes, prioridades y tiempos de respuesta.
+      </p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <button
+        type="button"
+        (click)="csvExportRequested.emit(ticketsFiltrados())"
+        class="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+      >
+        <span>↓</span> Exportar CSV
+      </button>
+      <button
+        type="button"
+        (click)="createRequested.emit()"
+        class="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-amber-400 px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-amber-300"
+      >
+        <span class="text-lg leading-none">+</span> Crear ticket
+      </button>
+    </div>
+  </div>
+
+  <!-- MÉTRICAS -->
+  <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    @if (esAdmin()) {
+      <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="flex items-center justify-between gap-3">
+          <p class="text-sm font-medium text-slate-500">Tickets activos</p>
+          <span class="grid h-9 w-9 place-items-center rounded-lg bg-blue-50 text-lg text-blue-700"
+            >▤</span
+          >
+        </div>
+        <p class="mt-4 text-3xl font-bold tracking-tight text-slate-900">
+          {{ ticketsActivos().length }}
+        </p>
+        <p class="mt-2 text-xs text-slate-500">Solicitudes sin resolver</p>
+      </div>
+    }
+    <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="flex items-center justify-between gap-3">
+        <p class="text-sm font-medium text-slate-500">Prioridad alta</p>
+        <span class="grid h-9 w-9 place-items-center rounded-lg bg-red-50 text-lg text-red-700"
+          >!</span
+        >
+      </div>
+      <p class="mt-4 text-3xl font-bold tracking-tight text-slate-900">
+        {{ ticketsPorPrioridad('P1').length }}
+      </p>
+      <p class="mt-2 text-xs text-slate-500">Requieren atención prioritaria</p>
+    </div>
+    @if (esAdmin()) {
+      <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="flex items-center justify-between gap-3">
+          <p class="text-sm font-medium text-slate-500">Sin asignar</p>
+          <span
+            class="grid h-9 w-9 place-items-center rounded-lg bg-amber-50 text-lg text-amber-700"
+            >⇄</span
+          >
+        </div>
+        <p class="mt-4 text-3xl font-bold tracking-tight text-slate-900">
+          {{ ticketsSinAsignar().length }}
+        </p>
+        <p class="mt-2 text-xs text-slate-500">Esperando un agente</p>
+      </div>
+    }
+    <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="flex items-center justify-between gap-3">
+        <p class="text-sm font-medium text-slate-500">SLA vencidos</p>
+        <span class="grid h-9 w-9 place-items-center rounded-lg bg-rose-50 text-lg text-rose-700"
+          >◷</span
+        >
+      </div>
+      <p class="mt-4 text-3xl font-bold tracking-tight text-slate-900">
+        {{ ticketsVencidos().length }}
+      </p>
+      <p class="mt-2 text-xs text-slate-500">Fuera del tiempo objetivo</p>
+    </div>
+  </div>
+
+  <!-- TABLA -->
+  <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div class="border-b border-slate-200 p-5">
+      <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 class="text-base font-bold text-slate-900">
+            {{ esAdmin() ? 'Tickets activos' : 'Mis tickets activos' }}
+          </h2>
+          <p class="mt-1 text-xs text-slate-500">
+            Los tickets resueltos están en su apartado independiente.
+          </p>
+        </div>
+        <span class="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600"
+          >{{ ticketsFiltrados().length }} resultados</span
+        >
+      </div>
+
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="min-w-[200px] flex-1">
+          <label for="ticket-search" class="sr-only">Buscar tickets</label>
+          <input
+            id="ticket-search"
+            [ngModel]="busqueda"
+            (ngModelChange)="actualizarBusqueda($event)"
+            placeholder="Buscar por ID, título, solicitante o correo..."
+            class="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
+          />
+        </div>
+        <select
+          [ngModel]="filtroEstado"
+          (ngModelChange)="actualizarEstado($event)"
+          aria-label="Filtrar por estado"
+          class="h-10 min-w-[135px] rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-amber-400"
+        >
+          <option value="">Todos los estados</option>
+          <option value="Activos">Activos</option>
+          <option value="Abierto">Abierto</option>
+          <option value="En progreso">En progreso</option>
+          <option value="Pendiente">Pendiente</option>
+        </select>
+        <select
+          [ngModel]="filtroPrioridad"
+          (ngModelChange)="actualizarPrioridad($event)"
+          aria-label="Filtrar por prioridad"
+          class="h-10 min-w-[125px] rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-amber-400"
+        >
+          <option value="">Prioridades</option>
+          @for (prioridad of prioridades; track prioridad) {
+            <option [value]="prioridad">{{ prioridad }}</option>
+          }
+        </select>
+        <select
+          [ngModel]="filtroAgente"
+          (ngModelChange)="actualizarAgente($event)"
+          aria-label="Filtrar por agente"
+          class="h-10 min-w-[125px] rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-amber-400"
+        >
+          <option value="">Todos los agentes</option>
+          @for (agente of agentes; track agente) {
+            <option [value]="agente.name">{{ agente.name }}</option>
+          }
+        </select>
+        <button
+          type="button"
+          (click)="limpiarFiltros()"
+          class="h-10 rounded-lg border border-slate-200 px-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+        >
+          Limpiar
+        </button>
+      </div>
+    </div>
+
+    <div class="w-full overflow-x-auto">
+      <table class="w-full min-w-[1050px] border-collapse text-left">
+        <thead class="bg-slate-50">
+          <tr class="border-b border-slate-200 text-[11px] uppercase tracking-wide text-slate-500">
+            <th class="px-5 py-4 font-semibold">Ticket</th>
+            <th class="px-4 py-4 font-semibold">Solicitante</th>
+            <th class="px-4 py-4 font-semibold">Prioridad</th>
+            <th class="px-4 py-4 font-semibold">Estado</th>
+            <th class="px-4 py-4 font-semibold">Agente / cola</th>
+            <th class="px-4 py-4 font-semibold">SLA</th>
+            <th class="px-4 py-4 text-right font-semibold">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (ticket of ticketsPaginados(); track trackTicketById($index, ticket)) {
+            <tr class="border-b border-slate-100 transition last:border-0 hover:bg-slate-50/80">
+              <td class="max-w-[280px] px-5 py-4">
+                <button
+                  type="button"
+                  (click)="ticketOpened.emit(ticket)"
+                  class="block max-w-full text-left text-sm font-semibold text-slate-900 hover:text-amber-700"
+                >
+                  {{ ticket.titulo }}
+                </button>
+                <p class="mt-1 text-xs text-slate-400">{{ ticket.id }} · {{ ticket.categoria }}</p>
+                <p class="mt-1 max-w-[260px] truncate text-xs text-slate-500">
+                  {{ ticket.descripcion }}
+                </p>
+              </td>
+              <td class="px-4 py-4">
+                <p class="text-sm font-medium text-slate-700">{{ ticket.solicitante }}</p>
+                <p class="mt-1 text-xs text-slate-400">{{ ticket.sucursal }}</p>
+              </td>
+              <td class="px-4 py-4">
+                <span
+                  [class]="
+                    ticket.prioridad === 'P1'
+                      ? 'inline-flex rounded-md bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700'
+                      : ticket.prioridad === 'P2'
+                        ? 'inline-flex rounded-md bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800'
+                        : 'inline-flex rounded-md bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700'
+                  "
+                  >{{ ticket.prioridad }}</span
+                >
+              </td>
+              <td class="px-4 py-4">
+                <span
+                  [class]="
+                    ticket.estado === 'Resuelto'
+                      ? 'inline-flex rounded-md bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700'
+                      : ticket.estado === 'En progreso'
+                        ? 'inline-flex rounded-md bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700'
+                        : ticket.estado === 'Pendiente'
+                          ? 'inline-flex rounded-md bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-700'
+                          : 'inline-flex rounded-md bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-800'
+                  "
+                  >{{ ticket.estado }}</span
+                >
+              </td>
+              <td class="px-4 py-4">
+                <p class="text-sm text-slate-700">{{ agenteVisible(ticket) }}</p>
+                <p class="mt-1 text-xs text-slate-400">{{ ticket.cola }}</p>
+              </td>
+              <td class="min-w-[150px] px-4 py-4">
+                <p
+                  [class]="
+                    claseSla(ticket) === 'sla-danger'
+                      ? 'mb-2 text-xs font-semibold text-red-600'
+                      : claseSla(ticket) === 'sla-warning'
+                        ? 'mb-2 text-xs font-semibold text-amber-700'
+                        : 'mb-2 text-xs font-medium text-emerald-700'
+                  "
+                >
+                  {{ textoSla(ticket) }}
+                </p>
+                <div class="h-1.5 w-24 overflow-hidden rounded-full bg-slate-100">
+                  <div
+                    class="h-full rounded-full"
+                    [style.width.%]="porcentajeSla(ticket)"
+                    [class]="
+                      claseSla(ticket) === 'sla-danger'
+                        ? 'bg-red-500'
+                        : claseSla(ticket) === 'sla-warning'
+                          ? 'bg-amber-400'
+                          : 'bg-emerald-500'
+                    "
+                  ></div>
+                </div>
+              </td>
+              <td class="px-4 py-4">
+                <div class="flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    (click)="ticketOpened.emit(ticket)"
+                    title="Ver detalle"
+                    class="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+                  >
+                    Ver
+                  </button>
+                  @if (esAdmin()) {
+                    <button
+                      type="button"
+                      (click)="assignmentRequested.emit(ticket)"
+                      title="Asignar agente"
+                      class="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 hover:border-amber-300 hover:bg-amber-50"
+                    >
+                      Asignar
+                    </button>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+          @if (ticketsPaginados().length === 0) {
+            <tr>
+              <td colspan="7" class="px-5 py-16 text-center">
+                <p class="font-semibold text-slate-700">No se encontraron tickets</p>
+                <p class="mt-2 text-sm text-slate-500">Prueba cambiando los filtros de búsqueda.</p>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div
+      class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-5 py-4"
+    >
+      <p class="text-xs text-slate-500">
+        Mostrando {{ ticketsFiltrados().length ? (paginaActual - 1) * ticketsPorPagina + 1 : 0 }}–{{
+          finPagina()
+        }}
+        de {{ ticketsFiltrados().length }} tickets
+      </p>
+      <div class="flex items-center gap-1">
+        <button
+          type="button"
+          [disabled]="paginaActual === 1"
+          (click)="cambiarPagina(paginaActual - 1)"
+          class="grid h-9 min-w-9 place-items-center rounded-lg border border-slate-200 px-2 text-sm text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          ‹
+        </button>
+        <span class="px-3 text-xs font-semibold text-slate-600"
+          >Página {{ paginaActual }} de {{ totalPaginas() }}</span
+        >
+        <button
+          type="button"
+          [disabled]="paginaActual === totalPaginas()"
+          (click)="cambiarPagina(paginaActual + 1)"
+          class="grid h-9 min-w-9 place-items-center rounded-lg border border-slate-200 px-2 text-sm text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          ›
+        </button>
+      </div>
+    </div>
+  </div>
+</section>

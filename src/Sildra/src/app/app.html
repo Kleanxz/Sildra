@@ -1,954 +1,373 @@
-
-<div *ngIf="cargandoSesion && !usuarioActual" class="grid min-h-screen place-items-center bg-slate-50 px-4 text-slate-500">
-  <div class="text-center">
-    <div class="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-amber-400 text-xl font-black text-slate-900">S</div>
-    <p class="mt-4 text-sm font-medium">Conectando con Sildra Support…</p>
-  </div>
-</div>
-
-<div *ngIf="!cargandoSesion && !usuarioActual" class="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10">
-  <div class="w-full max-w-md">
-    <div class="mb-7 text-center">
-      <div class="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-amber-400 text-2xl font-black text-slate-900">S</div>
-      <h1 class="mt-4 text-2xl font-extrabold tracking-tight text-slate-900">Sildra Support</h1>
-      <p class="mt-2 text-sm text-slate-500">{{ modoRegistro ? 'Crea una cuenta para enviar reportes de soporte.' : 'Ingresa para consultar y gestionar tus reportes.' }}</p>
-    </div>
-
-    <form (ngSubmit)="ingresar()" class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-      <div class="mb-6">
-        <p class="text-[11px] font-bold uppercase tracking-[0.16em] text-amber-700">Acceso seguro</p>
-        <h2 class="mt-2 text-xl font-bold text-slate-900">{{ modoRegistro ? 'Crear cuenta' : 'Iniciar sesión' }}</h2>
-        <p class="mt-1 text-sm text-slate-500">El tipo de acceso se asigna desde la base de datos.</p>
-      </div>
-
-      <label *ngIf="modoRegistro" class="mb-4 block text-sm font-medium text-slate-700">Nombre completo
-        <input name="authNombre" [(ngModel)]="authForm.nombre" required minlength="2" maxlength="120" autocomplete="name" class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100" />
-      </label>
-      <label *ngIf="modoRegistro" class="mb-4 block text-sm font-medium text-slate-700">Organización y sucursal
-        <select name="authOrganization" [(ngModel)]="authForm.organizacionId" required class="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100">
-          <option value="" disabled>Selecciona una sucursal</option>
-          <option *ngFor="let organization of organizaciones" [value]="organization.id">{{ organization.name }} · {{ organization.branch }}</option>
-        </select>
-      </label>
-      <p *ngIf="modoRegistro && organizaciones.length === 0" class="mb-4 text-xs leading-5 text-amber-800">No hay organizaciones disponibles. El administrador debe configurarlas en PostgreSQL.</p>
-      <label class="mb-4 block text-sm font-medium text-slate-700">Correo electrónico
-        <input name="authEmail" [(ngModel)]="authForm.email" required type="email" autocomplete="username" class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100" />
-      </label>
-      <label class="block text-sm font-medium text-slate-700">Contraseña
-        <input name="authPassword" [(ngModel)]="authForm.password" required [minlength]="modoRegistro ? 8 : 1" type="password" autocomplete="current-password" class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100" />
-      </label>
-
-      <p *ngIf="errorAcceso" class="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700">{{ errorAcceso }}</p>
-      <p *ngIf="modoRegistro" class="mt-4 text-xs leading-5 text-slate-500">Las cuentas nuevas son de usuario. El acceso de administrador se configura en el servidor.</p>
-
-      <button type="submit" [disabled]="modoRegistro && organizaciones.length === 0" [class.cursor-not-allowed]="modoRegistro && organizaciones.length === 0" [class.opacity-50]="modoRegistro && organizaciones.length === 0" class="mt-6 min-h-11 w-full rounded-lg bg-amber-400 px-5 py-2.5 text-sm font-bold text-slate-950 transition hover:bg-amber-300">
-        {{ modoRegistro ? 'Crear cuenta' : 'Entrar' }}
-      </button>
-      <button type="button" (click)="cambiarModoAcceso()" class="mt-4 w-full text-center text-sm font-semibold text-amber-800 hover:text-amber-900">
-        {{ modoRegistro ? 'Ya tengo una cuenta' : 'Crear una cuenta de usuario' }}
-      </button>
-    </form>
-    <p class="mt-5 text-center text-xs text-slate-400">Sildra Support Desk · Reportes protegidos por cuenta</p>
-  </div>
-</div>
-
-<div *ngIf="usuarioActual" class="min-h-screen bg-slate-50 text-slate-800">
-  <div class="flex min-h-screen">
-
-    <!-- BARRA LATERAL -->
-    <aside class="fixed inset-y-0 left-0 z-30 flex w-64 flex-col overflow-y-auto border-r border-slate-200 bg-white max-md:w-[72px]">
-      <div class="flex h-[76px] items-center gap-3 border-b border-slate-100 px-5 max-md:justify-center max-md:px-2">
-        <div class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber-400 text-lg font-black text-slate-900">S</div>
-        <div class="max-md:hidden">
-          <h1 class="text-lg font-extrabold tracking-tight text-slate-900">Sildra</h1>
-          <p class="text-xs text-slate-500">Support Desk</p>
+<router-outlet></router-outlet>
+@if (!usuarioActual) {
+  <app-auth-view
+    [cargandoSesion]="cargandoSesion"
+    [modoRegistro]="modoRegistro"
+    [errorAcceso]="errorAcceso"
+    [organizaciones]="organizaciones"
+    [authForm]="authForm"
+    (submitRequested)="ingresar()"
+    (modeToggleRequested)="cambiarModoAcceso()"
+  />
+}
+@if (usuarioActual) {
+  <div class="min-h-screen bg-slate-50 text-slate-800">
+    <div class="flex min-h-screen">
+      <!-- BARRA LATERAL -->
+      <app-sidebar
+        [sections]="seccionesVisibles()"
+        [activeTab]="activeTab"
+        [isAdmin]="esAdmin()"
+        [ticketsSinAsignarCount]="ticketsSinAsignar().length"
+        [profileName]="perfil.nombre"
+        [profileRole]="perfil.cargo"
+        (tabSelected)="cambiarPestana($event)"
+      />
+      <!-- CONTENIDO PRINCIPAL -->
+      <main class="ml-64 flex min-w-0 flex-1 flex-col max-md:ml-[72px]">
+        <!-- CABECERA -->
+        <app-header
+          [activeTab]="activeTab"
+          [isAdmin]="esAdmin()"
+          [isAgent]="esAgente()"
+          [profileName]="perfil.nombre"
+          (commandsRequested)="mostrarPaletaComandos = true; busquedaComandos = ''"
+          (logoutRequested)="cerrarSesion()"
+        />
+        <div class="mx-auto w-full max-w-[1600px] flex-1 p-8 max-lg:p-5 max-sm:p-3">
+          <!-- ============================================ -->
+          <!-- BANDEJA DE TICKETS -->
+          <!-- ============================================ -->
+          @if (activeTab === 'Bandeja de tickets') {
+            <app-ticket-inbox
+              [tickets]="tickets"
+              [agentes]="agentes"
+              [isAdmin]="esAdmin()"
+              [canHandle]="puedeAtender()"
+              [busqueda]="busqueda"
+              (busquedaChange)="busqueda = $event"
+              [filtroEstado]="filtroEstado"
+              (filtroEstadoChange)="filtroEstado = $event"
+              [filtroPrioridad]="filtroPrioridad"
+              (filtroPrioridadChange)="filtroPrioridad = $event"
+              [filtroAgente]="filtroAgente"
+              (filtroAgenteChange)="filtroAgente = $event"
+              [filtroCola]="filtroCola"
+              [paginaActual]="paginaActual"
+              (paginaActualChange)="paginaActual = $event"
+              [ticketsPorPagina]="ticketsPorPagina"
+              (filtersCleared)="limpiarFiltros()"
+              (createRequested)="abrirFormulario()"
+              (ticketOpened)="verDetalleDesdeSeccion($event)"
+              (assignmentRequested)="abrirAsignacion($event)"
+              (csvExportRequested)="exportarCSV($event)"
+            />
+          }
+          <!-- TICKETS RESUELTOS -->
+          @if (activeTab === 'Tickets resueltos') {
+            <app-resolved-tickets
+              [tickets]="ticketsResueltos()"
+              [busqueda]="busquedaResueltos"
+              (busquedaChange)="busquedaResueltos = $event"
+              (ticketOpened)="verDetalleDesdeSeccion($event)"
+            />
+          }
+          <!-- ============================================ -->
+          <!-- DETALLE DE TICKET -->
+          <!-- ============================================ -->
+          @if (activeTab === 'Detalle de ticket') {
+            <app-ticket-detail
+              [ticketSeleccionado]="ticketSeleccionado"
+              [isAdmin]="esAdmin()"
+              [canHandle]="puedeAtender()"
+              [estados]="estados"
+              [prioridades]="prioridades"
+              [colas]="colas"
+              [mensajesChat]="mensajesChat"
+              [usuarioId]="usuarioActual?.id"
+              [cargandoChat]="cargandoChat"
+              [enviandoChat]="enviandoChat"
+              [errorChat]="errorChat"
+              [nuevoMensajeChat]="nuevoMensajeChat"
+              (nuevoMensajeChatChange)="nuevoMensajeChat = $event"
+              (backRequested)="cambiarPestana('Bandeja de tickets')"
+              (saveRequested)="guardarCambiosDetalle()"
+              (resolveRequested)="resolverTicket($event)"
+              (reopenRequested)="reabrirTicket($event)"
+              (assignmentRequested)="abrirAsignacion($event)"
+              (chatRefreshRequested)="cargarMensajesChat()"
+              (chatSendRequested)="enviarMensajeChat()"
+            />
+          }
+          <!-- ============================================ -->
+          <!-- CREAR TICKET -->
+          <!-- ============================================ -->
+          @if (activeTab === 'Crear ticket') {
+            <app-create-ticket-page [app]="this" />
+          }
+          <!-- ============================================ -->
+          <!-- ASIGNAR TICKETS -->
+          <!-- ============================================ -->
+          @if (activeTab === 'Asignar tickets') {
+            <app-assign-tickets-page [app]="this" />
+          }
+          <!-- ============================================ -->
+          <!-- PANEL DE OPERACIÓN -->
+          <!-- ============================================ -->
+          @if (activeTab === 'Panel de operación') {
+            <app-operations-dashboard-page [app]="this" />
+          }
+          <!-- ============================================ -->
+          <!-- PRIORIDAD, SLA Y COLAS -->
+          <!-- ============================================ -->
+          @if (activeTab === 'Prioridad, SLA y colas') {
+            <app-sla-queues-page [app]="this" />
+          }
+          <!-- ============================================ -->
+          <!-- ORGANIZACIONES -->
+          <!-- ============================================ -->
+          @if (activeTab === 'Organizaciones') {
+            <app-organization-management-page [app]="this" />
+          }
+          <!-- ============================================ -->
+          <!-- RESOLVER TICKETS -->
+          @if (activeTab === 'Resolver tickets') {
+            <app-resolve-tickets-page [app]="this" />
+          }
+          <!-- DETALLE DE LLAMADA -->
+          @if (activeTab === 'Detalle de llamada') {
+            <app-call-details-page [app]="this" />
+          }
+          <!-- TRANSFERENCIA CÁLIDA -->
+          @if (activeTab === 'Transferencia cálida entrante') {
+            <app-incoming-handoffs-page [app]="this" />
+          }
+          <!-- REVISION DE CLASIFICACION -->
+          @if (activeTab === 'Revisión de clasificación') {
+            <app-classification-review-page [app]="this" />
+          }
+          <!-- BASE DE CONOCIMIENTO -->
+          @if (activeTab === 'Base de conocimiento') {
+            <app-knowledge-base-page [app]="this" />
+          }
+          <!-- NUEVO ARTICULO KB -->
+          @if (activeTab === 'Nuevo artículo KB') {
+            <app-article-editor-page [app]="this" />
+          }
+          <!-- APROBAR ARTICULO KB -->
+          @if (activeTab === 'Aprobar artículo KB') {
+            <app-article-approval-page [app]="this" />
+          }
+          <!-- RECHAZAR ARTICULO KB -->
+          @if (activeTab === 'Rechazar artículo KB') {
+            <app-article-rejection-page [app]="this" />
+          }
+          <!-- PERMISOS DE USUARIOS -->
+          @if (activeTab === 'Permisos de usuarios') {
+            <app-user-access-page [app]="this" />
+          }
+          <!-- ============================================ -->
+          <!-- PERFIL DEL USUARIO -->
+          <!-- ============================================ -->
+          @if (activeTab === 'Perfil del usuario') {
+            <app-user-profile-page [app]="this" />
+          }
         </div>
-      </div>
-
-      <div class="mx-3 mt-5 flex items-center gap-3 rounded-xl bg-slate-50 p-3 max-md:justify-center max-md:px-1">
-        <div class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-slate-900 text-sm font-bold text-amber-300">SD</div>
-        <div class="min-w-0 max-md:hidden">
-          <p class="truncate text-xs font-bold text-slate-800">Centro de soporte</p>
-          <p class="mt-1 text-[11px] text-slate-500">Área de operaciones</p>
-        </div>
-      </div>
-
-      <nav class="flex-1 px-3 pb-4 pt-6">
-        <p class="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400 max-md:hidden">Tickets</p>
-
-        <button
-          *ngFor="let seccion of seccionesVisibles()"
-          type="button"
-          (click)="cambiarPestana(seccion.nombre)"
-          [class]="activeTab === seccion.nombre
-            ? 'mb-1 flex min-h-11 w-full items-center gap-3 rounded-lg border-l-[3px] border-amber-400 bg-slate-900 px-3 text-left text-sm font-semibold text-white'
-            : 'mb-1 flex min-h-11 w-full items-center gap-3 rounded-lg border-l-[3px] border-transparent px-3 text-left text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900'"
+        <footer
+          class="border-t border-slate-200 bg-white px-8 py-4 text-xs text-slate-400 max-sm:px-4"
         >
-          <span class="grid w-6 shrink-0 place-items-center text-lg" [class.text-amber-400]="activeTab === seccion.nombre">
-            <svg *ngIf="seccion.icono === 'call'; else simboloMenu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5" aria-hidden="true"><path d="M5 4h3l2 5-2 1.5a15 15 0 0 0 5.5 5.5L15 14l5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z"/></svg>
-            <ng-template #simboloMenu>{{ seccion.icono }}</ng-template>
-          </span>
-          <span class="min-w-0 flex-1 max-md:hidden">{{ seccion.nombre }}</span>
-          <span
-            *ngIf="esAdmin() && seccion.nombre === 'Asignar tickets' && ticketsSinAsignar().length > 0"
-            class="rounded-md bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800 max-md:hidden"
-          >{{ ticketsSinAsignar().length }}</span>
-        </button>
-      </nav>
-
-      <div class="border-t border-slate-100 p-4 max-md:px-2">
-        <div class="flex items-center gap-3 rounded-lg p-2 max-md:justify-center">
-          <div class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-amber-100 text-xs font-bold text-amber-900">
-            {{ perfil.nombre.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase() }}
+          Sildra Support Desk · Panel de gestión de tickets
+        </footer>
+      </main>
+    </div>
+    <!-- PALETA DE COMANDOS Y ATAJOS -->
+    @if (mostrarPaletaComandos) {
+      <div
+        (click)="mostrarPaletaComandos = false"
+        class="fixed inset-0 z-[70] flex items-start justify-center bg-slate-950/40 p-4 pt-[12vh] backdrop-blur-sm"
+      >
+        <div
+          (click)="$event.stopPropagation()"
+          class="w-full max-w-xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
+        >
+          <div class="border-b border-slate-100 p-4">
+            <label class="sr-only" for="command-search">Buscar comando</label
+            ><input
+              id="command-search"
+              name="commandSearch"
+              [(ngModel)]="busquedaComandos"
+              placeholder="Busca una pantalla o acción…"
+              class="h-12 w-full rounded-lg border border-slate-200 px-4 text-sm outline-none focus:border-amber-400"
+            />
+            <p class="mt-2 text-xs text-slate-400">
+              Navega con <kbd class="rounded border px-1">Alt + 1–9</kbd>, cierra con
+              <kbd class="rounded border px-1">Esc</kbd>
+            </p>
           </div>
-          <div class="min-w-0 max-md:hidden">
-            <p class="truncate text-xs font-bold text-slate-800">{{ perfil.nombre }}</p>
-            <p class="mt-1 truncate text-[11px] text-slate-500">{{ perfil.cargo }}</p>
+          <div class="max-h-[55vh] overflow-y-auto p-2">
+            @for (comando of comandosFiltrados(); track comando; let index = $index) {
+              <button
+                type="button"
+                (click)="ejecutarComando(comando.nombre)"
+                class="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-sm font-medium text-slate-700 hover:bg-amber-50 hover:text-slate-900"
+              >
+                <span class="grid h-8 w-8 place-items-center rounded-lg bg-slate-100 text-lg">{{
+                  comando.icono
+                }}</span
+                ><span class="flex-1">{{ comando.nombre }}</span>
+                @if (index < 9) {
+                  <kbd class="rounded border border-slate-200 px-2 py-1 text-[10px] text-slate-400"
+                    >Alt + {{ index + 1 }}</kbd
+                  >
+                }
+                <span>↵</span>
+              </button>
+            }
+            @if (comandosFiltrados().length === 0) {
+              <p class="p-6 text-center text-sm text-slate-500">
+                No hay comandos para esa búsqueda.
+              </p>
+            }
           </div>
         </div>
       </div>
-    </aside>
-
-    <!-- CONTENIDO PRINCIPAL -->
-    <main class="ml-64 flex min-w-0 flex-1 flex-col max-md:ml-[72px]">
-      <!-- CABECERA -->
-      <header class="sticky top-0 z-20 flex min-h-[68px] items-center justify-between gap-4 border-b border-slate-200 bg-white/95 px-8 backdrop-blur max-lg:px-5 max-sm:px-3">
-        <div class="min-w-0">
-          <p class="text-xs text-slate-500">Sildra Support <span class="mx-1 text-slate-300">/</span> <span class="font-semibold text-slate-800">{{ activeTab }}</span></p>
-        </div>
-        <div class="flex shrink-0 items-center gap-4 max-sm:gap-2">
-          <div class="flex items-center gap-2 text-xs font-medium text-emerald-700 max-sm:hidden">
-            <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
-            Sistema operativo
+    }
+    <!-- MODAL DE RESOLUCIÓN -->
+    @if (mostrarResolucion && ticketResolucion; as ticket) {
+      <div
+        class="fixed inset-0 z-[65] flex items-center justify-center overflow-y-auto bg-slate-950/50 p-4 backdrop-blur-sm"
+      >
+        <form
+          (ngSubmit)="confirmarResolucion()"
+          class="my-auto w-full max-w-xl rounded-2xl bg-white p-6 shadow-2xl"
+        >
+          <p class="text-xs font-bold uppercase tracking-wider text-emerald-700">
+            Cierre documentado
+          </p>
+          <h2 class="mt-2 text-xl font-bold text-slate-900">Resolver {{ ticket.id }}</h2>
+          <p class="mt-1 text-sm text-slate-500">{{ ticket.titulo }}</p>
+          <label class="mt-5 block text-sm font-semibold text-slate-700"
+            >¿Qué pasos seguiste y cuál fue la solución? *<textarea
+              name="resolutionNotes"
+              [(ngModel)]="notasResolucion"
+              required
+              minlength="10"
+              maxlength="5000"
+              rows="6"
+              placeholder="Describe el diagnóstico, las acciones realizadas y cómo confirmaste la solución…"
+              class="mt-2 w-full rounded-lg border border-slate-200 p-3 text-sm leading-6 outline-none focus:border-emerald-500"
+            ></textarea>
+          </label>
+          <div class="mt-6 flex justify-end gap-3">
+            <button
+              type="button"
+              (click)="mostrarResolucion = false"
+              class="min-h-10 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700"
+            >
+              Cancelar</button
+            ><button
+              type="submit"
+              class="min-h-10 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700"
+            >
+              Guardar resolución
+            </button>
           </div>
-          <button type="button" (click)="mostrarPaletaComandos = true; busquedaComandos = ''" title="Abrir comandos (Ctrl/⌘ K)" class="min-h-9 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-600 transition hover:bg-slate-50">⌘K <span class="text-slate-400">Atajos</span></button>
-          <div class="grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-amber-100 text-xs font-bold text-amber-900">
-            {{ perfil.nombre.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase() }}
-          </div>
-          <span class="rounded-md bg-slate-100 px-2.5 py-1.5 text-xs font-semibold text-slate-600 max-sm:hidden">{{ esAdmin() ? 'Administrador' : esAgente() ? 'Agente' : 'Usuario' }}</span>
-          <button type="button" (click)="cerrarSesion()" class="min-h-9 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-600 transition hover:bg-slate-50">Salir</button>
-        </div>
-      </header>
-
-      <div class="mx-auto w-full max-w-[1600px] flex-1 p-8 max-lg:p-5 max-sm:p-3">
-
-        <!-- ============================================ -->
-        <!-- BANDEJA DE TICKETS -->
-        <!-- ============================================ -->
-        <section *ngIf="activeTab === 'Bandeja de tickets'">
-          <div class="mb-7 flex flex-wrap items-end justify-between gap-4">
+        </form>
+      </div>
+    }
+    <!-- MODAL DE ASIGNACIÓN -->
+    @if (mostrarAsignacion && ticketSeleccionado; as ticket) {
+      <div
+        class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950/50 p-4 backdrop-blur-sm"
+      >
+        <div class="my-auto w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+          <div class="mb-5 flex items-start justify-between gap-4">
             <div>
-              <p class="mb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-amber-700">Centro de atención</p>
-              <h1 class="text-3xl font-bold tracking-tight text-slate-900 max-sm:text-2xl">Bandeja de tickets</h1>
-              <p class="mt-2 text-sm text-slate-500">Administra solicitudes, prioridades y tiempos de respuesta.</p>
+              <p class="text-xs font-bold uppercase tracking-wider text-amber-700">
+                Gestión de equipo
+              </p>
+              <h2 class="mt-2 text-xl font-bold text-slate-900">Asignar ticket</h2>
+              <p class="mt-1 text-sm text-slate-500">{{ ticket.id }} · {{ ticket.titulo }}</p>
             </div>
-            <div class="flex flex-wrap gap-2">
-              <button type="button" (click)="exportarCSV()" class="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
-                <span>↓</span> Exportar CSV
-              </button>
-              <button type="button" (click)="abrirFormulario()" class="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-amber-400 px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-amber-300">
-                <span class="text-lg leading-none">+</span> Crear ticket
-              </button>
-            </div>
+            <button
+              type="button"
+              (click)="mostrarAsignacion = false"
+              aria-label="Cerrar"
+              class="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-slate-200 text-xl text-slate-500 hover:bg-slate-50"
+            >
+              ×
+            </button>
           </div>
-
-          <!-- MÉTRICAS -->
-          <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <div *ngIf="esAdmin()" class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div class="flex items-center justify-between gap-3">
-                <p class="text-sm font-medium text-slate-500">Tickets activos</p>
-                <span class="grid h-9 w-9 place-items-center rounded-lg bg-blue-50 text-lg text-blue-700">▤</span>
-              </div>
-              <p class="mt-4 text-3xl font-bold tracking-tight text-slate-900">{{ ticketsActivos().length }}</p>
-              <p class="mt-2 text-xs text-slate-500">Solicitudes sin resolver</p>
-            </div>
-            <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div class="flex items-center justify-between gap-3">
-                <p class="text-sm font-medium text-slate-500">Prioridad alta</p>
-                <span class="grid h-9 w-9 place-items-center rounded-lg bg-red-50 text-lg text-red-700">!</span>
-              </div>
-              <p class="mt-4 text-3xl font-bold tracking-tight text-slate-900">{{ ticketsPorPrioridad('P1').length }}</p>
-              <p class="mt-2 text-xs text-slate-500">Requieren atención prioritaria</p>
-            </div>
-            <div *ngIf="esAdmin()" class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div class="flex items-center justify-between gap-3">
-                <p class="text-sm font-medium text-slate-500">Sin asignar</p>
-                <span class="grid h-9 w-9 place-items-center rounded-lg bg-amber-50 text-lg text-amber-700">⇄</span>
-              </div>
-              <p class="mt-4 text-3xl font-bold tracking-tight text-slate-900">{{ ticketsSinAsignar().length }}</p>
-              <p class="mt-2 text-xs text-slate-500">Esperando un agente</p>
-            </div>
-            <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div class="flex items-center justify-between gap-3">
-                <p class="text-sm font-medium text-slate-500">SLA vencidos</p>
-                <span class="grid h-9 w-9 place-items-center rounded-lg bg-rose-50 text-lg text-rose-700">◷</span>
-              </div>
-              <p class="mt-4 text-3xl font-bold tracking-tight text-slate-900">{{ ticketsVencidos().length }}</p>
-              <p class="mt-2 text-xs text-slate-500">Fuera del tiempo objetivo</p>
-            </div>
+          <div class="rounded-lg bg-slate-50 p-4">
+            <p class="text-xs text-slate-500">Solicitante</p>
+            <p class="mt-1 text-sm font-semibold text-slate-800">{{ ticket.solicitante }}</p>
+            <p class="mt-3 text-xs text-slate-500">Cola de soporte</p>
+            <p class="mt-1 text-sm font-semibold text-slate-800">{{ ticket.cola }}</p>
           </div>
-
-          <!-- TABLA -->
-          <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-            <div class="border-b border-slate-200 p-5">
-              <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <h2 class="text-base font-bold text-slate-900">{{ esAdmin() ? 'Tickets activos' : 'Mis tickets activos' }}</h2>
-                  <p class="mt-1 text-xs text-slate-500">Los tickets resueltos están en su apartado independiente.</p>
-                </div>
-                <span class="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600">{{ ticketsFiltrados().length }} resultados</span>
-              </div>
-
-              <div class="flex flex-wrap items-center gap-3">
-                <div class="min-w-[200px] flex-1">
-                  <label for="ticket-search" class="sr-only">Buscar tickets</label>
-                  <input id="ticket-search" [(ngModel)]="busqueda" (ngModelChange)="paginaActual = 1" placeholder="Buscar por ID, título, solicitante o correo..." class="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-amber-400 focus:ring-2 focus:ring-amber-100" />
-                </div>
-                <select [(ngModel)]="filtroEstado" (ngModelChange)="paginaActual = 1" aria-label="Filtrar por estado" class="h-10 min-w-[135px] rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-amber-400">
-                  <option value="">Todos los estados</option>
-                  <option value="Activos">Activos</option>
-                  <option value="Abierto">Abierto</option>
-                  <option value="En progreso">En progreso</option>
-                  <option value="Pendiente">Pendiente</option>
-                </select>
-                <select [(ngModel)]="filtroPrioridad" (ngModelChange)="paginaActual = 1" aria-label="Filtrar por prioridad" class="h-10 min-w-[125px] rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-amber-400">
-                  <option value="">Prioridades</option>
-                  <option *ngFor="let prioridad of prioridades" [value]="prioridad">{{ prioridad }}</option>
-                </select>
-                <select [(ngModel)]="filtroAgente" (ngModelChange)="paginaActual = 1" aria-label="Filtrar por agente" class="h-10 min-w-[125px] rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-amber-400">
-                  <option value="">Todos los agentes</option>
-                  <option *ngFor="let agente of agentes" [value]="agente.name">{{ agente.name }}</option>
-                </select>
-                <button type="button" (click)="limpiarFiltros()" class="h-10 rounded-lg border border-slate-200 px-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50">Limpiar</button>
-              </div>
-            </div>
-
-            <div class="w-full overflow-x-auto">
-              <table class="w-full min-w-[1050px] border-collapse text-left">
-                <thead class="bg-slate-50">
-                  <tr class="border-b border-slate-200 text-[11px] uppercase tracking-wide text-slate-500">
-                    <th class="px-5 py-4 font-semibold">Ticket</th>
-                    <th class="px-4 py-4 font-semibold">Solicitante</th>
-                    <th class="px-4 py-4 font-semibold">Prioridad</th>
-                    <th class="px-4 py-4 font-semibold">Estado</th>
-                    <th class="px-4 py-4 font-semibold">Agente / cola</th>
-                    <th class="px-4 py-4 font-semibold">SLA</th>
-                    <th class="px-4 py-4 text-right font-semibold">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let ticket of ticketsPaginados(); trackBy: trackTicketById" class="border-b border-slate-100 transition last:border-0 hover:bg-slate-50/80">
-                    <td class="max-w-[280px] px-5 py-4">
-                      <button type="button" (click)="verDetalleDesdeSeccion(ticket)" class="block max-w-full text-left text-sm font-semibold text-slate-900 hover:text-amber-700">{{ ticket.titulo }}</button>
-                      <p class="mt-1 text-xs text-slate-400">{{ ticket.id }} · {{ ticket.categoria }}</p>
-                      <p class="mt-1 max-w-[260px] truncate text-xs text-slate-500">{{ ticket.descripcion }}</p>
-                    </td>
-                    <td class="px-4 py-4">
-                      <p class="text-sm font-medium text-slate-700">{{ ticket.solicitante }}</p>
-                      <p class="mt-1 text-xs text-slate-400">{{ ticket.sucursal }}</p>
-                    </td>
-                    <td class="px-4 py-4">
-                      <span [class]="ticket.prioridad === 'P1' ? 'inline-flex rounded-md bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700' : ticket.prioridad === 'P2' ? 'inline-flex rounded-md bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800' : 'inline-flex rounded-md bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700'">{{ ticket.prioridad }}</span>
-                    </td>
-                    <td class="px-4 py-4">
-                      <span [class]="ticket.estado === 'Resuelto' ? 'inline-flex rounded-md bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700' : ticket.estado === 'En progreso' ? 'inline-flex rounded-md bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700' : ticket.estado === 'Pendiente' ? 'inline-flex rounded-md bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-700' : 'inline-flex rounded-md bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-800'">{{ ticket.estado }}</span>
-                    </td>
-                    <td class="px-4 py-4">
-                      <p class="text-sm text-slate-700">{{ agenteVisible(ticket) }}</p>
-                      <p class="mt-1 text-xs text-slate-400">{{ ticket.cola }}</p>
-                    </td>
-                    <td class="min-w-[150px] px-4 py-4">
-                      <p [class]="claseSla(ticket) === 'sla-danger' ? 'mb-2 text-xs font-semibold text-red-600' : claseSla(ticket) === 'sla-warning' ? 'mb-2 text-xs font-semibold text-amber-700' : 'mb-2 text-xs font-medium text-emerald-700'">{{ textoSla(ticket) }}</p>
-                      <div class="h-1.5 w-24 overflow-hidden rounded-full bg-slate-100">
-                        <div class="h-full rounded-full" [style.width.%]="porcentajeSla(ticket)" [class]="claseSla(ticket) === 'sla-danger' ? 'bg-red-500' : claseSla(ticket) === 'sla-warning' ? 'bg-amber-400' : 'bg-emerald-500'"></div>
-                      </div>
-                    </td>
-                    <td class="px-4 py-4">
-                      <div class="flex items-center justify-end gap-2">
-                        <button type="button" (click)="verDetalleDesdeSeccion(ticket)" title="Ver detalle" class="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50">Ver</button>
-                        <button *ngIf="esAdmin()" type="button" (click)="abrirAsignacion(ticket)" title="Asignar agente" class="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 hover:border-amber-300 hover:bg-amber-50">Asignar</button>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr *ngIf="ticketsPaginados().length === 0">
-                    <td colspan="7" class="px-5 py-16 text-center">
-                      <p class="font-semibold text-slate-700">No se encontraron tickets</p>
-                      <p class="mt-2 text-sm text-slate-500">Prueba cambiando los filtros de búsqueda.</p>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <div class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-5 py-4">
-              <p class="text-xs text-slate-500">Mostrando {{ ticketsFiltrados().length ? (paginaActual - 1) * ticketsPorPagina + 1 : 0 }}–{{ finPagina() }} de {{ ticketsFiltrados().length }} tickets</p>
-              <div class="flex items-center gap-1">
-                <button type="button" [disabled]="paginaActual === 1" (click)="cambiarPagina(paginaActual - 1)" class="grid h-9 min-w-9 place-items-center rounded-lg border border-slate-200 px-2 text-sm text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40">‹</button>
-                <span class="px-3 text-xs font-semibold text-slate-600">Página {{ paginaActual }} de {{ totalPaginas() }}</span>
-                <button type="button" [disabled]="paginaActual === totalPaginas()" (click)="cambiarPagina(paginaActual + 1)" class="grid h-9 min-w-9 place-items-center rounded-lg border border-slate-200 px-2 text-sm text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40">›</button>
-              </div>
-            </div>
+          <label class="mt-5 block text-sm font-semibold text-slate-700"
+            >Seleccionar agente
+            <select
+              [(ngModel)]="agenteSeleccionado"
+              class="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
+            >
+              <option value="">Sin asignar</option>
+              @for (agente of agentes; track agente) {
+                <option [value]="agente.id">{{ agente.name }} · {{ agente.role }}</option>
+              }
+            </select>
+          </label>
+          <div class="mt-7 flex flex-wrap justify-end gap-3">
+            <button
+              type="button"
+              (click)="mostrarAsignacion = false"
+              class="min-h-10 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              (click)="asignarAgente()"
+              class="min-h-10 rounded-lg bg-amber-400 px-4 py-2 text-sm font-bold text-slate-950 hover:bg-amber-300"
+            >
+              Guardar asignación
+            </button>
           </div>
-        </section>
-
-        <!-- TICKETS RESUELTOS -->
-        <section *ngIf="activeTab === 'Tickets resueltos'">
-          <div class="mb-7 flex flex-wrap items-end justify-between gap-4">
-            <div><p class="mb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-emerald-700">Historial de soporte</p><h1 class="text-3xl font-bold tracking-tight text-slate-900 max-sm:text-2xl">Tickets resueltos</h1><p class="mt-2 text-sm text-slate-500">Consulta los casos finalizados y el procedimiento aplicado.</p></div>
-            <span class="rounded-lg bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800">{{ ticketsResueltosFiltrados().length }} resultados</span>
-          </div>
-          <label class="mb-5 block"><span class="sr-only">Buscar tickets resueltos</span><input [(ngModel)]="busquedaResueltos" placeholder="Buscar por ID, título, categoría o solución…" class="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm outline-none transition placeholder:text-slate-400 focus:border-amber-400 focus:ring-2 focus:ring-amber-100" /></label>
-          <div class="space-y-4">
-            <article *ngFor="let ticket of ticketsResueltosFiltrados(); trackBy: trackTicketById" class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div class="flex flex-wrap items-start justify-between gap-4"><div class="min-w-0 flex-1"><p class="text-xs font-semibold text-slate-400">{{ ticket.id }} · {{ ticket.categoria }} · {{ ticket.prioridad }}</p><h2 class="mt-2 break-words text-lg font-bold text-slate-900">{{ ticket.titulo }}</h2><p class="mt-2 text-sm text-slate-500">Solicitante: {{ ticket.solicitante }} · {{ formatearFecha(ticket.creado) }}</p></div><button type="button" (click)="verDetalleDesdeSeccion(ticket)" class="min-h-10 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Ver ticket</button></div>
-              <div class="mt-4 rounded-lg border border-emerald-100 bg-emerald-50/60 p-4"><h3 class="text-sm font-bold text-emerald-900">Cómo se resolvió</h3><p class="mt-2 whitespace-pre-line text-sm leading-6 text-emerald-900">{{ ticket.resolutionNotes || 'No se registró un procedimiento para este ticket.' }}</p></div>
-            </article>
-            <div *ngIf="ticketsResueltosFiltrados().length === 0" class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-slate-500">{{ busquedaResueltos ? 'No hay tickets resueltos que coincidan con la búsqueda.' : 'Todavía no hay tickets resueltos.' }}</div>
-          </div>
-        </section>
-
-        <!-- ============================================ -->
-        <!-- DETALLE DE TICKET -->
-        <!-- ============================================ -->
-        <section *ngIf="activeTab === 'Detalle de ticket'">
-          <div class="mb-7">
-            <button type="button" (click)="cambiarPestana('Bandeja de tickets')" class="mb-4 text-sm font-semibold text-slate-500 hover:text-slate-900">← Volver a la bandeja</button>
-            <p class="mb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-amber-700">Gestión de solicitudes</p>
-            <h1 class="text-3xl font-bold tracking-tight text-slate-900 max-sm:text-2xl">Detalle de ticket</h1>
-            <p class="mt-2 text-sm text-slate-500">Consulta la información y el tiempo límite de esta solicitud.</p>
-          </div>
-
-          <div *ngIf="ticketSeleccionado as ticket; else noTicket" class="space-y-5">
-            <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm max-sm:p-4">
-              <div class="flex flex-wrap items-start justify-between gap-4">
-                <div class="min-w-0">
-                  <p class="text-xs font-semibold text-slate-400">{{ ticket.id }} · Creado {{ formatearFecha(ticket.creado) }}</p>
-                  <h2 class="mt-3 break-words text-2xl font-bold text-slate-900">{{ ticket.titulo }}</h2>
-                  <p class="mt-2 text-sm text-slate-500">{{ ticket.categoria }} · {{ ticket.canal }}</p>
-                </div>
-                <span [class]="ticket.estado === 'Resuelto' ? 'rounded-md bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700' : ticket.estado === 'En progreso' ? 'rounded-md bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700' : ticket.estado === 'Pendiente' ? 'rounded-md bg-violet-50 px-3 py-1.5 text-xs font-semibold text-violet-700' : 'rounded-md bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-800'">{{ ticket.estado }}</span>
-              </div>
-
-              <div class="my-6 h-px bg-slate-100"></div>
-              <h3 class="mb-3 text-sm font-bold text-slate-900">Descripción del problema</h3>
-              <p class="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm leading-7 text-slate-600">{{ ticket.descripcion }}</p>
-              <div *ngIf="ticket.resolutionNotes" class="mt-5 rounded-lg border border-emerald-200 bg-emerald-50 p-4"><h3 class="text-sm font-bold text-emerald-900">Cómo se resolvió</h3><p class="mt-2 whitespace-pre-line text-sm leading-6 text-emerald-900">{{ ticket.resolutionNotes }}</p></div>
-
-              <div class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                <div><p class="text-xs text-slate-400">Solicitante</p><p class="mt-2 break-words text-sm font-semibold text-slate-800">{{ ticket.solicitante }}</p></div>
-                <div><p class="text-xs text-slate-400">Correo</p><p class="mt-2 break-words text-sm font-semibold text-slate-800">{{ ticket.email }}</p></div>
-                <div><p class="text-xs text-slate-400">Teléfono</p><p class="mt-2 break-words text-sm font-semibold text-slate-800">{{ ticket.telefono || '—' }}</p></div>
-                <div><p class="text-xs text-slate-400">Organización</p><p class="mt-2 text-sm font-semibold text-slate-800">{{ ticket.organizacion }}</p></div>
-                <div><p class="text-xs text-slate-400">Sucursal</p><p class="mt-2 text-sm font-semibold text-slate-800">{{ ticket.sucursal }}</p></div>
-                <div><p class="text-xs text-slate-400">Agente asignado</p><p class="mt-2 text-sm font-semibold text-slate-800">{{ agenteVisible(ticket) }}</p></div>
-                <div><p class="text-xs text-slate-400">Cola de soporte</p><p class="mt-2 text-sm font-semibold text-slate-800">{{ ticket.cola }}</p></div>
-              </div>
-            </div>
-
-            <div *ngIf="esAdmin()" class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm max-sm:p-4">
-              <h3 class="text-base font-bold text-slate-900">Actualizar ticket</h3>
-              <p class="mt-1 text-sm text-slate-500">Modifica el estado, la prioridad o la cola de atención.</p>
-              <div class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <label class="block text-sm font-medium text-slate-700">Estado
-                  <select [(ngModel)]="ticket.estado" class="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-amber-400">
-                    <option *ngFor="let estado of estados" [value]="estado">{{ estado }}</option>
-                  </select>
-                </label>
-                <label class="block text-sm font-medium text-slate-700">Prioridad
-                  <select [(ngModel)]="ticket.prioridad" class="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-amber-400">
-                    <option *ngFor="let prioridad of prioridades" [value]="prioridad">{{ prioridad }}</option>
-                  </select>
-                </label>
-                <label class="block text-sm font-medium text-slate-700">Cola
-                  <select [(ngModel)]="ticket.cola" class="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-amber-400">
-                    <option *ngFor="let cola of colas" [value]="cola">{{ cola }}</option>
-                  </select>
-                </label>
-              </div>
-              <div class="mt-6 flex flex-wrap gap-3">
-                <button type="button" (click)="guardarCambiosDetalle()" class="min-h-10 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700">Guardar cambios</button>
-                <button *ngIf="ticket.estado !== 'Resuelto'" type="button" (click)="resolverTicket(ticket)" class="min-h-10 rounded-lg bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-100">Marcar como resuelto</button>
-                <button *ngIf="ticket.estado === 'Resuelto'" type="button" (click)="reabrirTicket(ticket)" class="min-h-10 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Reabrir ticket</button>
-                <button type="button" (click)="abrirAsignacion(ticket)" class="min-h-10 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Asignar agente</button>
-              </div>
-            </div>
-
-            <div class="rounded-xl border border-amber-200 bg-amber-50 p-5">
-              <div class="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <p class="text-sm font-bold text-slate-900">Acuerdo de nivel de servicio (SLA)</p>
-                  <p class="mt-1 text-sm text-slate-600">{{ textoSla(ticket) }}</p>
-                </div>
-                <span [class]="claseSla(ticket) === 'sla-danger' ? 'text-sm font-bold text-red-700' : claseSla(ticket) === 'sla-warning' ? 'text-sm font-bold text-amber-700' : 'text-sm font-bold text-emerald-700'">{{ porcentajeSla(ticket) | number:'1.0-0' }}% del tiempo disponible</span>
-              </div>
-              <div class="mt-4 h-2 overflow-hidden rounded-full bg-white">
-                <div class="h-full rounded-full" [style.width.%]="porcentajeSla(ticket)" [class]="claseSla(ticket) === 'sla-danger' ? 'bg-red-500' : claseSla(ticket) === 'sla-warning' ? 'bg-amber-400' : 'bg-emerald-500'"></div>
-              </div>
-            </div>
-          </div>
-          <ng-template #noTicket>
-            <div class="rounded-xl border border-slate-200 bg-white p-10 text-center text-sm text-slate-500">No hay un ticket seleccionado.</div>
-          </ng-template>
-        </section>
-
-        <!-- ============================================ -->
-        <!-- CREAR TICKET -->
-        <!-- ============================================ -->
-        <section *ngIf="activeTab === 'Crear ticket'">
-          <div class="mb-7">
-            <p class="mb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-amber-700">Nueva solicitud</p>
-            <h1 class="text-3xl font-bold tracking-tight text-slate-900 max-sm:text-2xl">Crear ticket</h1>
-            <p class="mt-2 text-sm text-slate-500">Describe el problema; el reporte quedará guardado y asociado a tu cuenta.</p>
-          </div>
-
-          <form (ngSubmit)="crearTicket()" class="max-w-4xl rounded-xl border border-slate-200 bg-white p-6 shadow-sm max-sm:p-4">
-            <div class="mb-6 border-b border-slate-100 pb-4">
-              <h2 class="text-base font-bold text-slate-900">Información de la solicitud</h2>
-              <p class="mt-1 text-sm text-slate-500">Los campos marcados con * son obligatorios. El SLA comienza al enviar el reporte.</p>
-            </div>
-
-            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-              <label class="block text-sm font-medium text-slate-700 sm:col-span-2">Título del problema *
-                <input name="titulo" [(ngModel)]="nuevoTicket.titulo" required maxlength="150" placeholder="Ej. Equipo no enciende" class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100" />
-              </label>
-              <label class="block text-sm font-medium text-slate-700">Nombre del solicitante *
-                <input name="solicitante" [(ngModel)]="perfil.nombre" readonly class="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm text-slate-500 outline-none" />
-              </label>
-              <label class="block text-sm font-medium text-slate-700">Correo electrónico *
-                <input name="email" [(ngModel)]="perfil.email" type="email" readonly class="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm text-slate-500 outline-none" />
-              </label>
-              <label class="block text-sm font-medium text-slate-700 sm:col-span-2">Teléfono de contacto *
-                <input name="telefono" [(ngModel)]="nuevoTicket.telefono" type="tel" required minlength="7" maxlength="40" pattern="[0-9+(). -]{7,40}" autocomplete="tel" placeholder="Ej. +1 809 555 1234" class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100" />
-              </label>
-              <label class="block text-sm font-medium text-slate-700 sm:col-span-2">Organización *
-                <select name="organizacionId" [(ngModel)]="nuevoTicket.organizacionId" required [disabled]="organizaciones.length === 0" class="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-amber-400">
-                  <option value="">Selecciona una organización</option>
-                  <option *ngFor="let organization of organizaciones" [value]="organization.id">{{ organization.name }}{{ organization.branch ? ' · ' + organization.branch : '' }}</option>
-                </select>
-                <span *ngIf="organizaciones.length === 0" class="mt-2 block text-xs text-red-600">No hay organizaciones registradas. El administrador debe agregar una a la base de datos.</span>
-              </label>
-              <label class="block text-sm font-medium text-slate-700">Categoría
-                <select name="categoria" [(ngModel)]="nuevoTicket.categoria" class="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-amber-400">
-                  <option *ngFor="let categoria of categorias" [value]="categoria">{{ categoria }}</option>
-                </select>
-              </label>
-              <label class="block text-sm font-medium text-slate-700">Canal de entrada
-                <select name="canal" [(ngModel)]="nuevoTicket.canal" class="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-amber-400">
-                  <option value="Portal">Portal</option>
-                  <option value="Correo">Correo</option>
-                  <option value="Teléfono">Teléfono</option>
-                </select>
-              </label>
-              <label class="block text-sm font-medium text-slate-700">Prioridad
-                <select name="prioridad" [(ngModel)]="nuevoTicket.prioridad" class="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-amber-400">
-                  <option *ngFor="let prioridad of prioridades" [value]="prioridad">{{ prioridad }}</option>
-                </select>
-              </label>
-              <div class="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-900 sm:col-span-2">
-                El estado comenzará como Abierto. La fecha límite del SLA se guarda en PostgreSQL y el tiempo restante se actualiza automáticamente.
-              </div>
-              <label class="block text-sm font-medium text-slate-700 sm:col-span-2">Descripción del problema *
-                <textarea name="descripcion" [(ngModel)]="nuevoTicket.descripcion" required rows="5" placeholder="Explica el problema, cuándo comenzó y qué mensaje aparece..." class="mt-2 w-full rounded-lg border border-slate-200 p-3 text-sm leading-6 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100"></textarea>
-              </label>
-            </div>
-
-            <div class="mt-7 flex flex-wrap justify-end gap-3 border-t border-slate-100 pt-5">
-              <button type="button" (click)="cerrarFormulario()" class="min-h-10 rounded-lg border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Cancelar</button>
-              <button type="submit" class="min-h-10 rounded-lg bg-amber-400 px-5 py-2 text-sm font-bold text-slate-950 hover:bg-amber-300">Crear ticket</button>
-            </div>
-          </form>
-        </section>
-
-        <!-- ============================================ -->
-        <!-- ASIGNAR TICKETS -->
-        <!-- ============================================ -->
-        <section *ngIf="activeTab === 'Asignar tickets'">
-          <div class="mb-7">
-            <p class="mb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-amber-700">Distribución de trabajo</p>
-            <h1 class="text-3xl font-bold tracking-tight text-slate-900 max-sm:text-2xl">Asignar tickets</h1>
-            <p class="mt-2 text-sm text-slate-500">Distribuye las solicitudes entre los agentes de soporte.</p>
-          </div>
-
-          <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div class="rounded-xl border border-slate-200 bg-white p-5">
-              <p class="text-sm text-slate-500">Pendientes de asignación</p>
-              <p class="mt-3 text-3xl font-bold text-slate-900">{{ ticketsSinAsignar().length }}</p>
-            </div>
-            <div class="rounded-xl border border-slate-200 bg-white p-5">
-              <p class="text-sm text-slate-500">Agentes disponibles</p>
-              <p class="mt-3 text-3xl font-bold text-slate-900">{{ agentes.length }}</p>
-            </div>
-            <div class="rounded-xl border border-slate-200 bg-white p-5">
-              <p class="text-sm text-slate-500">Tickets activos</p>
-              <p class="mt-3 text-3xl font-bold text-slate-900">{{ ticketsActivos().length }}</p>
-            </div>
-          </div>
-
-          <div class="mb-6 rounded-xl border border-slate-200 bg-white p-5">
-            <h2 class="text-base font-bold text-slate-900">Carga de trabajo por agente</h2>
-            <p class="mt-1 text-sm text-slate-500">Cantidad de tickets activos asignados a cada persona.</p>
-            <div class="mt-5 space-y-5">
-              <div *ngFor="let agente of agentes" class="min-w-0">
-                <div class="mb-2 flex items-center justify-between gap-3">
-                  <span class="text-sm font-medium text-slate-700">{{ agente.name }}</span>
-                  <span class="text-xs font-semibold text-slate-500">{{ cantidadPorAgente(agente.name) }} tickets</span>
-                </div>
-                <div class="h-2 overflow-hidden rounded-full bg-slate-100">
-                  <div class="h-full rounded-full bg-amber-400" [style.width.%]="porcentajeAgente(agente.name)"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
-            <div class="border-b border-slate-200 p-5">
-              <h2 class="font-bold text-slate-900">Tickets que necesitan asignación</h2>
-              <p class="mt-1 text-sm text-slate-500">También puedes cambiar el agente de tickets que ya tienen asignación.</p>
-            </div>
-            <div class="divide-y divide-slate-100">
-              <div *ngFor="let ticket of ticketsActivos(); trackBy: trackTicketById" class="flex flex-wrap items-center justify-between gap-4 p-5 transition hover:bg-slate-50">
-                <div class="min-w-0 flex-1">
-                  <p class="break-words text-sm font-semibold text-slate-900">{{ ticket.titulo }}</p>
-                  <p class="mt-1 text-xs text-slate-500">{{ ticket.id }} · {{ ticket.solicitante }} · {{ ticket.cola }}</p>
-                  <p class="mt-2 text-xs text-slate-500">Agente actual: <span class="font-semibold text-slate-700">{{ ticket.agente }}</span></p>
-                </div>
-                <div class="flex items-center gap-3">
-                  <span *ngIf="ticket.agente === 'Sin asignar'" class="rounded-md bg-amber-50 px-2.5 py-1.5 text-xs font-semibold text-amber-800">Sin asignar</span>
-                  <button type="button" (click)="abrirAsignacion(ticket)" class="min-h-10 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:border-amber-300 hover:bg-amber-50">Asignar agente</button>
-                </div>
-              </div>
-              <div *ngIf="ticketsActivos().length === 0" class="p-10 text-center text-sm text-slate-500">No hay tickets activos para asignar.</div>
-            </div>
-          </div>
-        </section>
-
-        <!-- ============================================ -->
-        <!-- PANEL DE OPERACIÓN -->
-        <!-- ============================================ -->
-        <section *ngIf="activeTab === 'Panel de operación'">
-          <div class="mb-7">
-            <p class="mb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-amber-700">Supervisión</p>
-            <h1 class="text-3xl font-bold tracking-tight text-slate-900 max-sm:text-2xl">Panel de operación</h1>
-            <p class="mt-2 text-sm text-slate-500">Resumen del rendimiento y la carga del equipo de soporte.</p>
-          </div>
-
-          <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <div class="rounded-xl border border-slate-200 bg-white p-5">
-              <p class="text-sm text-slate-500">Total de tickets</p>
-              <p class="mt-3 text-3xl font-bold text-slate-900">{{ tickets.length }}</p>
-              <p class="mt-2 text-xs text-slate-400">Solicitudes registradas</p>
-            </div>
-            <div class="rounded-xl border border-slate-200 bg-white p-5">
-              <p class="text-sm text-slate-500">Tickets activos</p>
-              <p class="mt-3 text-3xl font-bold text-slate-900">{{ ticketsActivos().length }}</p>
-              <p class="mt-2 text-xs text-slate-400">{{ porcentajeEstado('Resuelto') }}% resueltos del total</p>
-            </div>
-            <div class="rounded-xl border border-slate-200 bg-white p-5">
-              <p class="text-sm text-slate-500">Tickets resueltos</p>
-              <p class="mt-3 text-3xl font-bold text-emerald-700">{{ ticketsResueltos().length }}</p>
-              <p class="mt-2 text-xs text-slate-400">Solicitudes completadas</p>
-            </div>
-            <div class="rounded-xl border border-slate-200 bg-white p-5">
-              <p class="text-sm text-slate-500">SLA vencidos</p>
-              <p class="mt-3 text-3xl font-bold text-red-700">{{ ticketsVencidos().length }}</p>
-              <p class="mt-2 text-xs text-slate-400">Necesitan seguimiento</p>
-            </div>
-          </div>
-
-          <div class="mb-6 grid grid-cols-1 gap-5 xl:grid-cols-2">
-            <div class="rounded-xl border border-slate-200 bg-white p-5">
-              <h2 class="text-base font-bold text-slate-900">Distribución por estado</h2>
-              <p class="mt-1 text-sm text-slate-500">Proporción de solicitudes registradas.</p>
-              <div class="mt-6 space-y-5">
-                <div *ngFor="let estado of estados">
-                  <div class="mb-2 flex items-center justify-between gap-3">
-                    <span class="text-sm text-slate-600">{{ estado }}</span>
-                    <span class="text-sm font-semibold text-slate-800">{{ ticketsPorEstado(estado).length }} <span class="text-xs font-normal text-slate-400">({{ porcentajeEstado(estado) }}%)</span></span>
-                  </div>
-                  <div class="h-2 overflow-hidden rounded-full bg-slate-100">
-                    <div class="h-full rounded-full" [style.width.%]="porcentajeEstado(estado)" [class]="estado === 'Resuelto' ? 'bg-emerald-500' : estado === 'En progreso' ? 'bg-blue-500' : estado === 'Pendiente' ? 'bg-violet-400' : 'bg-amber-400'"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="rounded-xl border border-slate-200 bg-white p-5">
-              <h2 class="text-base font-bold text-slate-900">Tickets activos por prioridad</h2>
-              <p class="mt-1 text-sm text-slate-500">Identifica dónde concentrar los recursos.</p>
-              <div class="mt-5 space-y-3">
-                <div class="flex items-center justify-between rounded-lg border border-slate-100 p-4">
-                  <div class="flex items-center gap-3">
-                    <span class="h-2.5 w-2.5 rounded-full bg-red-500"></span>
-                    <div><p class="text-sm font-semibold text-slate-800">P1 · Alta</p><p class="mt-1 text-xs text-slate-500">Atención prioritaria</p></div>
-                  </div>
-                  <span class="text-xl font-bold text-slate-900">{{ ticketsPorPrioridad('P1').length }}</span>
-                </div>
-                <div class="flex items-center justify-between rounded-lg border border-slate-100 p-4">
-                  <div class="flex items-center gap-3">
-                    <span class="h-2.5 w-2.5 rounded-full bg-amber-400"></span>
-                    <div><p class="text-sm font-semibold text-slate-800">P2 · Media</p><p class="mt-1 text-xs text-slate-500">Atención estándar</p></div>
-                  </div>
-                  <span class="text-xl font-bold text-slate-900">{{ ticketsPorPrioridad('P2').length }}</span>
-                </div>
-                <div class="flex items-center justify-between rounded-lg border border-slate-100 p-4">
-                  <div class="flex items-center gap-3">
-                    <span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
-                    <div><p class="text-sm font-semibold text-slate-800">P3 · Baja</p><p class="mt-1 text-xs text-slate-500">Solicitudes no urgentes</p></div>
-                  </div>
-                  <span class="text-xl font-bold text-slate-900">{{ ticketsPorPrioridad('P3').length }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="rounded-xl border border-slate-200 bg-white p-5">
-            <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
-              <div><h2 class="text-base font-bold text-slate-900">Actividad que requiere atención</h2><p class="mt-1 text-sm text-slate-500">Tickets de prioridad alta o con SLA vencido.</p></div>
-              <button type="button" (click)="cambiarPestana('Prioridad, SLA y colas')" class="text-sm font-semibold text-amber-700 hover:text-amber-800">Ver SLA y colas →</button>
-            </div>
-            <div class="divide-y divide-slate-100">
-              <button *ngFor="let ticket of ticketsDeAtencion(); trackBy: trackTicketById" type="button" (click)="verDetalleDesdeSeccion(ticket)" class="flex w-full flex-wrap items-center justify-between gap-3 py-4 text-left hover:bg-slate-50">
-                <div class="min-w-0 flex-1">
-                  <p class="break-words text-sm font-semibold text-slate-800">{{ ticket.titulo }}</p>
-                  <p class="mt-1 text-xs text-slate-500">{{ ticket.id }} · {{ ticket.agente }} · {{ ticket.cola }}</p>
-                </div>
-                <span [class]="ticket.slaRestante <= 0 ? 'rounded-md bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700' : 'rounded-md bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800'">{{ textoSla(ticket) }}</span>
-              </button>
-              <p *ngIf="ticketsDeAtencion().length === 0" class="py-8 text-center text-sm text-slate-500">No hay tickets que requieran atención prioritaria.</p>
-            </div>
-          </div>
-        </section>
-
-        <!-- ============================================ -->
-        <!-- PRIORIDAD, SLA Y COLAS -->
-        <!-- ============================================ -->
-        <section *ngIf="activeTab === 'Prioridad, SLA y colas'">
-          <div class="mb-7">
-            <p class="mb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-amber-700">Control de servicio</p>
-            <h1 class="text-3xl font-bold tracking-tight text-slate-900 max-sm:text-2xl">Prioridad, SLA y colas</h1>
-            <p class="mt-2 text-sm text-slate-500">Supervisa los compromisos de respuesta y la distribución por equipos.</p>
-          </div>
-
-          <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div class="rounded-xl border border-slate-200 bg-white p-5">
-              <p class="text-sm text-slate-500">Dentro del SLA</p>
-              <p class="mt-3 text-3xl font-bold text-emerald-700">{{ ticketsActivos().length - ticketsVencidos().length }}</p>
-              <p class="mt-2 text-xs text-slate-400">Tickets activos no vencidos</p>
-            </div>
-            <div class="rounded-xl border border-slate-200 bg-white p-5">
-              <p class="text-sm text-slate-500">SLA vencidos</p>
-              <p class="mt-3 text-3xl font-bold text-red-700">{{ ticketsVencidos().length }}</p>
-              <p class="mt-2 text-xs text-slate-400">Fuera del objetivo de respuesta</p>
-            </div>
-            <div class="rounded-xl border border-slate-200 bg-white p-5">
-              <p class="text-sm text-slate-500">Tickets de prioridad P1</p>
-              <p class="mt-3 text-3xl font-bold text-slate-900">{{ ticketsPorPrioridad('P1').length }}</p>
-              <p class="mt-2 text-xs text-slate-400">Casos de atención prioritaria</p>
-            </div>
-          </div>
-
-          <div class="mb-6 rounded-xl border border-slate-200 bg-white p-5">
-            <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
-              <div><h2 class="text-base font-bold text-slate-900">Estado de los SLA</h2><p class="mt-1 text-sm text-slate-500">Consulta el tiempo restante de cada solicitud activa.</p></div>
-              <select [(ngModel)]="filtroPrioridad" aria-label="Filtrar SLA por prioridad" class="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-amber-400">
-                <option value="">Todas las prioridades</option>
-                <option *ngFor="let prioridad of prioridades" [value]="prioridad">{{ prioridad }}</option>
-              </select>
-            </div>
-            <div class="space-y-4">
-              <div *ngFor="let ticket of ticketsSlaFiltrados(); trackBy: trackTicketById" class="rounded-lg border border-slate-100 p-4">
-                <div class="flex flex-wrap items-start justify-between gap-3">
-                  <div class="min-w-0 flex-1">
-                    <button type="button" (click)="verDetalleDesdeSeccion(ticket)" class="break-words text-left text-sm font-semibold text-slate-800 hover:text-amber-700">{{ ticket.titulo }}</button>
-                    <p class="mt-1 text-xs text-slate-500">{{ ticket.id }} · {{ ticket.cola }} · {{ ticket.agente }}</p>
-                  </div>
-                  <span [class]="claseSla(ticket) === 'sla-danger' ? 'rounded-md bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700' : claseSla(ticket) === 'sla-warning' ? 'rounded-md bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800' : 'rounded-md bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700'">{{ textoSla(ticket) }}</span>
-                </div>
-                <div class="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
-                  <div class="h-full rounded-full" [style.width.%]="porcentajeSla(ticket)" [class]="claseSla(ticket) === 'sla-danger' ? 'bg-red-500' : claseSla(ticket) === 'sla-warning' ? 'bg-amber-400' : 'bg-emerald-500'"></div>
-                </div>
-                <div class="mt-2 flex justify-between gap-3 text-[11px] text-slate-400">
-                  <span>Tiempo objetivo: {{ ticket.slaHoras }} h</span>
-                  <span>{{ porcentajeSla(ticket) | number:'1.0-0' }}% restante</span>
-                </div>
-              </div>
-              <p *ngIf="ticketsSlaFiltrados().length === 0" class="py-8 text-center text-sm text-slate-500">No hay tickets activos para esta prioridad.</p>
-            </div>
-          </div>
-
-          <div class="rounded-xl border border-slate-200 bg-white p-5">
-            <h2 class="text-base font-bold text-slate-900">Carga por cola</h2>
-            <p class="mt-1 text-sm text-slate-500">Solicitudes activas distribuidas por equipo de soporte.</p>
-            <div class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              <div *ngFor="let cola of colas" class="rounded-lg border border-slate-200 p-4">
-                <p class="text-sm font-semibold text-slate-800">{{ cola }}</p>
-                <p class="mt-3 text-2xl font-bold text-slate-900">{{ ticketsPorCola(cola).length }}</p>
-                <p class="mt-1 text-xs text-slate-500">Tickets activos</p>
-                <div class="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100">
-                  <div class="h-full rounded-full bg-amber-400" [style.width.%]="ticketsActivos().length ? (ticketsPorCola(cola).length / ticketsActivos().length) * 100 : 0"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- ============================================ -->
-        <!-- ORGANIZACIONES -->
-        <!-- ============================================ -->
-        <section *ngIf="activeTab === 'Organizaciones'">
-          <div class="mb-7">
-            <p class="mb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-amber-700">Administración</p>
-            <h1 class="text-3xl font-bold tracking-tight text-slate-900 max-sm:text-2xl">Organizaciones</h1>
-            <p class="mt-2 text-sm text-slate-500">Registra las organizaciones y sucursales disponibles al crear reportes.</p>
-          </div>
-
-          <div class="grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
-            <form (ngSubmit)="guardarOrganizacion()" class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm max-sm:p-4">
-              <h2 class="text-base font-bold text-slate-900">Agregar organización</h2>
-              <p class="mt-1 text-sm text-slate-500">Los usuarios podrán elegirla al enviar un reporte.</p>
-              <label class="mt-5 block text-sm font-medium text-slate-700">Nombre de la organización *
-                <input name="organizacionNombre" [(ngModel)]="nuevaOrganizacion.nombre" required minlength="2" maxlength="120" placeholder="Ej. Empresa Central" class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none focus:border-amber-400" />
-              </label>
-              <label class="mt-4 block text-sm font-medium text-slate-700">Sucursal
-                <input name="organizacionSucursal" [(ngModel)]="nuevaOrganizacion.sucursal" maxlength="120" placeholder="Ej. Sucursal norte" class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none focus:border-amber-400" />
-              </label>
-              <button type="submit" class="mt-6 min-h-10 rounded-lg bg-amber-400 px-5 py-2 text-sm font-bold text-slate-950 hover:bg-amber-300">Guardar organización</button>
-            </form>
-
-            <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm max-sm:p-4">
-              <div class="mb-4 flex items-center justify-between gap-3">
-                <div><h2 class="text-base font-bold text-slate-900">Organizaciones registradas</h2><p class="mt-1 text-sm text-slate-500">{{ organizaciones.length }} disponibles</p></div>
-              </div>
-              <div *ngIf="organizaciones.length; else noOrganizations" class="divide-y divide-slate-100">
-                <div *ngFor="let organization of organizaciones" class="flex items-center justify-between gap-3 py-3">
-                  <div><p class="text-sm font-semibold text-slate-800">{{ organization.name }}</p><p class="mt-1 text-xs text-slate-500">{{ organization.branch || 'Sin sucursal' }}</p></div>
-                  <span class="rounded-md bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">Activa</span>
-                </div>
-              </div>
-              <ng-template #noOrganizations><p class="rounded-lg border border-dashed border-slate-200 px-4 py-10 text-center text-sm text-slate-500">Aún no hay organizaciones. Agrega la primera para permitir la creación de reportes.</p></ng-template>
-            </div>
-          </div>
-        </section>
-
-        <!-- ============================================ -->
-        <!-- RESOLVER TICKETS -->
-        <section *ngIf="activeTab === 'Resolver tickets'">
-          <div class="mb-7">
-            <p class="mb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-amber-700">Trabajo asignado</p>
-            <h1 class="text-3xl font-bold tracking-tight text-slate-900 max-sm:text-2xl">Resolver tickets</h1>
-            <p class="mt-2 text-sm text-slate-500">Registra el procedimiento aplicado antes de cerrar cada caso.</p>
-          </div>
-          <div class="space-y-3">
-            <article *ngFor="let ticket of ticketsAsignadosActivos(); trackBy: trackTicketById" class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div class="flex flex-wrap items-start justify-between gap-4">
-                <div class="min-w-0 flex-1">
-                  <p class="text-xs font-semibold text-slate-400">{{ ticket.id }} · {{ ticket.categoria }} · {{ ticket.prioridad }}</p>
-                  <h2 class="mt-2 break-words text-lg font-bold text-slate-900">{{ ticket.titulo }}</h2>
-                  <p class="mt-2 whitespace-pre-line text-sm leading-6 text-slate-600">{{ ticket.descripcion }}</p>
-                  <p class="mt-3 text-xs text-slate-500">Solicitante: {{ ticket.solicitante }} · {{ ticket.estado }}</p>
-                  <p class="mt-1 text-xs text-slate-500">Teléfono de contacto: {{ ticket.telefono || '—' }}</p>
-                </div>
-                <button type="button" (click)="resolverTicket(ticket)" class="min-h-10 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700">Resolver ticket</button>
-              </div>
-            </article>
-            <div *ngIf="ticketsAsignadosActivos().length === 0" class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-slate-500">No tienes tickets activos asignados.</div>
-          </div>
-        </section>
-
-        <!-- DETALLE DE LLAMADA -->
-        <section *ngIf="activeTab === 'Detalle de llamada'">
-          <div class="mb-7 flex flex-wrap items-end justify-between gap-3">
-            <div><p class="mb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-amber-700">Telefonía</p><h1 class="text-3xl font-bold tracking-tight text-slate-900 max-sm:text-2xl">Detalle de llamada</h1><p class="mt-2 text-sm text-slate-500">Consulta el estado, los tiempos y los datos de conexión registrados.</p></div>
-            <button type="button" (click)="cargarLlamadas()" class="min-h-10 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Actualizar</button>
-          </div>
-          <div class="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(280px,.75fr)]">
-            <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
-              <div *ngFor="let llamada of llamadas" class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 p-4 last:border-0">
-                <div><p class="text-sm font-bold text-slate-800">{{ llamada.channel || 'Llamada' }} · {{ llamada.state }}</p><p class="mt-1 text-xs text-slate-500">{{ formatearFecha(llamada.startedAt) }} · {{ formatearDuracion(llamada.durationSec) }}</p></div>
-                <button type="button" (click)="llamadaSeleccionada = llamada" class="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">Ver detalle</button>
-              </div>
-              <p *ngIf="llamadas.length === 0" class="p-10 text-center text-sm text-slate-500">Todavía no hay llamadas registradas para esta cuenta.</p>
-            </div>
-            <div class="rounded-xl border border-slate-200 bg-white p-5">
-              <h2 class="font-bold text-slate-900">Datos de conexión</h2>
-              <ng-container *ngIf="llamadaSeleccionada as llamada; else sinLlamada">
-                <p class="mt-4 text-xs text-slate-400">ID de llamada</p><p class="mt-1 break-all text-sm font-semibold text-slate-800">{{ llamada.id }}</p>
-                <div class="mt-4 grid grid-cols-2 gap-4 text-sm"><div><p class="text-xs text-slate-400">Estado</p><p class="mt-1 font-semibold">{{ llamada.state }}</p></div><div><p class="text-xs text-slate-400">Duración</p><p class="mt-1 font-semibold">{{ formatearDuracion(llamada.durationSec) }}</p></div><div><p class="text-xs text-slate-400">Canal PBX</p><p class="mt-1 break-all font-semibold">{{ llamada.channelId || '—' }}</p></div><div><p class="text-xs text-slate-400">Códec</p><p class="mt-1 font-semibold">{{ llamada.codec || '—' }}</p></div><div><p class="text-xs text-slate-400">Puente</p><p class="mt-1 break-all font-semibold">{{ llamada.bridge || '—' }}</p></div><div><p class="text-xs text-slate-400">Proveedor</p><p class="mt-1 font-semibold">{{ llamada.providerRef || '—' }}</p></div></div>
-                <p class="mt-4 text-xs text-slate-400">Conectada</p><p class="mt-1 text-sm font-semibold">{{ llamada.connectedAt ? formatearFecha(llamada.connectedAt) : 'Sin conexión' }}</p>
-              </ng-container>
-              <ng-template #sinLlamada><p class="mt-3 text-sm text-slate-500">Selecciona una llamada para consultar sus detalles.</p></ng-template>
-            </div>
-          </div>
-        </section>
-
-        <!-- TRANSFERENCIA CÁLIDA -->
-        <section *ngIf="activeTab === 'Transferencia cálida entrante'">
-          <div class="mb-7"><p class="mb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-amber-700">Telefonía y coordinación</p><h1 class="text-3xl font-bold tracking-tight text-slate-900 max-sm:text-2xl">Transferencia cálida entrante</h1><p class="mt-2 text-sm text-slate-500">Coordina una entrega de llamada con contexto y acepta las transferencias pendientes.</p></div>
-          <form (ngSubmit)="solicitarTransferencia()" class="mb-6 grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-white p-5 sm:grid-cols-2 xl:grid-cols-5">
-            <label class="text-sm font-medium text-slate-700 xl:col-span-2">Ticket asignado
-              <select name="transferTicket" [(ngModel)]="transferenciaNueva.ticketId" required class="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm"><option value="">Selecciona un ticket</option><option *ngFor="let ticket of ticketsTransferibles(); trackBy: trackTicketById" [value]="ticket.dbId">{{ ticket.id }} · {{ ticket.titulo }}</option></select>
-            </label>
-            <label class="text-sm font-medium text-slate-700">Cola receptora<input name="transferQueue" [(ngModel)]="transferenciaNueva.queueRef" class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 text-sm" /></label>
-            <label class="text-sm font-medium text-slate-700">Extensión<input name="transferExtension" [(ngModel)]="transferenciaNueva.extensionRef" maxlength="40" placeholder="Ej. 204" class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 text-sm" /></label>
-            <label class="text-sm font-medium text-slate-700 sm:col-span-2 xl:col-span-4">Contexto para el agente receptor<input name="transferReason" [(ngModel)]="transferenciaNueva.reason" required minlength="3" placeholder="Motivo de la transferencia y contexto del cliente" class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 text-sm" /></label>
-            <button type="submit" class="min-h-11 self-end rounded-lg bg-amber-400 px-4 py-2 text-sm font-bold text-slate-950 hover:bg-amber-300">Solicitar transferencia</button>
-          </form>
-          <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
-            <div *ngFor="let transferencia of transferencias" class="border-b border-slate-100 p-5 last:border-0">
-              <div class="flex flex-wrap items-start justify-between gap-4"><div class="min-w-0 flex-1"><p class="text-xs font-bold uppercase tracking-wide text-amber-700">{{ transferencia.ticketNumber }} · {{ transferencia.status }}</p><h2 class="mt-1 break-words font-bold text-slate-900">{{ transferencia.subject }}</h2><p class="mt-2 text-sm text-slate-600">{{ transferencia.reason }}</p><p class="mt-2 text-xs text-slate-500">Cola {{ transferencia.queueRef || '—' }} · Extensión {{ transferencia.extensionRef || '—' }} · {{ formatearFecha(transferencia.requestedAt) }}</p></div>
-                <div class="flex flex-wrap gap-2"><button *ngIf="transferencia.status === 'requested'" type="button" (click)="actualizarTransferencia(transferencia, 'accepted')" class="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white">Aceptar</button><button *ngIf="transferencia.status === 'requested'" type="button" (click)="actualizarTransferencia(transferencia, 'rejected')" class="rounded-lg border border-red-200 px-3 py-2 text-xs font-semibold text-red-700">Rechazar</button><button *ngIf="transferencia.status === 'accepted'" type="button" (click)="actualizarTransferencia(transferencia, 'completed')" class="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700">Marcar completada</button></div></div>
-            </div>
-            <p *ngIf="transferencias.length === 0" class="p-10 text-center text-sm text-slate-500">No hay transferencias entrantes todavía.</p>
-          </div>
-        </section>
-
-        <!-- REVISION DE CLASIFICACION -->
-        <section *ngIf="activeTab === 'Revisión de clasificación'">
-          <div class="mb-7"><p class="mb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-amber-700">Calidad de datos</p><h1 class="text-3xl font-bold tracking-tight text-slate-900 max-sm:text-2xl">Revisión de clasificación</h1><p class="mt-2 text-sm text-slate-500">Corrige la categoría de tickets asignados y guarda la revisión en su historial.</p></div>
-          <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
-            <div *ngFor="let ticket of tickets; trackBy: trackTicketById" class="grid grid-cols-1 items-center gap-4 border-b border-slate-100 p-4 last:border-0 md:grid-cols-[minmax(0,1fr)_200px_auto]">
-              <div class="min-w-0"><p class="text-xs font-semibold text-slate-400">{{ ticket.id }} · {{ ticket.estado }}</p><p class="mt-1 break-words text-sm font-bold text-slate-900">{{ ticket.titulo }}</p><p class="mt-1 text-xs text-slate-500">Categoría actual: {{ ticket.categoria }}</p></div>
-              <select [name]="'category-' + ticket.dbId" [(ngModel)]="categoriaEdicion[ticket.dbId]" class="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm"><option *ngFor="let categoria of categorias" [value]="categoria">{{ categoria }}</option></select>
-              <button type="button" (click)="guardarClasificacion(ticket)" class="min-h-10 rounded-lg border border-amber-200 px-4 py-2 text-sm font-semibold text-amber-900 hover:bg-amber-50">Guardar revisión</button>
-            </div>
-            <p *ngIf="tickets.length === 0" class="p-10 text-center text-sm text-slate-500">No hay tickets para revisar.</p>
-          </div>
-        </section>
-
-        <!-- BASE DE CONOCIMIENTO -->
-        <section *ngIf="activeTab === 'Base de conocimiento'">
-          <div class="mb-7 flex flex-wrap items-end justify-between gap-4"><div><p class="mb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-amber-700">Guías de soporte</p><h1 class="text-3xl font-bold tracking-tight text-slate-900 max-sm:text-2xl">Base de conocimiento</h1><p class="mt-2 text-sm text-slate-500">Busca procedimientos publicados y soluciones de tickets aprobadas. Las nuevas resoluciones requieren revisión administrativa.</p></div><button *ngIf="puedeAtender()" type="button" (click)="cambiarPestana('Nuevo artículo KB')" class="min-h-10 rounded-lg bg-amber-400 px-4 py-2 text-sm font-bold text-slate-950">Nuevo artículo</button></div>
-          <div class="mb-5 flex flex-wrap items-center gap-3"><input [(ngModel)]="buscarKB" placeholder="Buscar por título, procedimiento, producto o módulo…" class="h-11 min-w-[240px] flex-1 rounded-lg border border-slate-200 bg-white px-4 text-sm outline-none transition placeholder:text-slate-400 focus:border-amber-400 focus:ring-2 focus:ring-amber-100" /><span class="text-xs font-medium text-slate-500">{{ articulosKBFiltrados().length }} resultados</span></div>
-          <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
-            <article *ngFor="let article of articulosKBFiltrados()" class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"><div class="flex flex-wrap items-start justify-between gap-3"><div><p class="text-xs font-semibold text-slate-400">{{ article.productCode || 'General' }}{{ article.moduleCode ? ' · ' + article.moduleCode : '' }} · v{{ article.versionNumber }}</p><h2 class="mt-2 text-lg font-bold text-slate-900">{{ article.title }}</h2></div><span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{{ estadoArticulo(article.workflowState) }}</span></div><p class="mt-3 whitespace-pre-line text-sm leading-6 text-slate-600">{{ article.content.split('\n\n').slice(1).join('\n\n') }}</p><p class="mt-4 text-xs text-slate-400">Idioma: {{ article.language }} · {{ formatearFecha(article.createdAt) }}</p><div *ngIf="article.workflowState === 'pending_review' && esAdmin()" class="mt-4 flex gap-2 border-t border-slate-100 pt-4"><button type="button" (click)="cambiarPestana('Aprobar artículo KB')" class="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white">Revisar aprobación</button><button type="button" (click)="cambiarPestana('Rechazar artículo KB')" class="rounded-lg border border-red-200 px-3 py-2 text-xs font-semibold text-red-700">Revisar rechazo</button></div></article>
-          </div>
-          <div *ngIf="articulosKBFiltrados().length === 0" class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-slate-500">{{ buscarKB ? 'No hay artículos que coincidan con la búsqueda.' : 'Aún no hay artículos en esta base.' }}</div>
-        </section>
-
-        <!-- NUEVO ARTICULO KB -->
-        <section *ngIf="activeTab === 'Nuevo artículo KB'">
-          <div class="mb-7"><button type="button" (click)="cambiarPestana('Base de conocimiento')" class="mb-4 text-sm font-semibold text-slate-500">← Base de conocimiento</button><p class="mb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-amber-700">Documentación interna</p><h1 class="text-3xl font-bold tracking-tight text-slate-900 max-sm:text-2xl">Nuevo artículo KB</h1><p class="mt-2 text-sm text-slate-500">El artículo se guardará como pendiente hasta que un administrador lo revise.</p></div>
-          <form (ngSubmit)="crearArticuloKB()" class="max-w-4xl space-y-5 rounded-xl border border-slate-200 bg-white p-6 shadow-sm max-sm:p-4"><label class="block text-sm font-medium text-slate-700">Título *<input name="kbTitle" [(ngModel)]="articuloNuevo.title" required minlength="3" maxlength="160" class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 text-sm" placeholder="Ej. Restablecer acceso a la cuenta" /></label><div class="grid grid-cols-1 gap-4 sm:grid-cols-3"><label class="text-sm font-medium text-slate-700">Producto<input name="kbProduct" [(ngModel)]="articuloNuevo.productCode" class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 text-sm" /></label><label class="text-sm font-medium text-slate-700">Módulo<input name="kbModule" [(ngModel)]="articuloNuevo.moduleCode" class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 text-sm" /></label><label class="text-sm font-medium text-slate-700">Idioma<select name="kbLanguage" [(ngModel)]="articuloNuevo.language" class="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm"><option value="es">Español</option><option value="en">English</option></select></label></div><label class="block text-sm font-medium text-slate-700">Procedimiento y solución *<textarea name="kbContent" [(ngModel)]="articuloNuevo.content" required minlength="20" rows="10" placeholder="Describe los pasos, la solución y cómo verificar que quedó resuelto…" class="mt-2 w-full rounded-lg border border-slate-200 p-3 text-sm leading-6"></textarea></label><div class="flex justify-end"><button type="submit" class="min-h-11 rounded-lg bg-amber-400 px-5 py-2.5 text-sm font-bold text-slate-950">Enviar a revisión</button></div></form>
-        </section>
-
-        <!-- APROBAR ARTICULO KB -->
-        <section *ngIf="activeTab === 'Aprobar artículo KB'"><div class="mb-7"><p class="mb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-emerald-700">Revisión de contenido</p><h1 class="text-3xl font-bold tracking-tight text-slate-900 max-sm:text-2xl">Aprobar artículo KB</h1><p class="mt-2 text-sm text-slate-500">Publica los procedimientos listos para consulta.</p></div><article *ngFor="let article of articulosPendientes()" class="mb-4 rounded-xl border border-slate-200 bg-white p-5"><h2 class="text-lg font-bold text-slate-900">{{ article.title }}</h2><p class="mt-3 whitespace-pre-line text-sm leading-6 text-slate-600">{{ article.content }}</p><div class="mt-4 flex justify-end"><button type="button" (click)="revisarArticuloKB(article, true)" class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white">Aprobar y publicar</button></div></article><p *ngIf="articulosPendientes().length === 0" class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-slate-500">No hay artículos pendientes de aprobación.</p></section>
-
-        <!-- RECHAZAR ARTICULO KB -->
-        <section *ngIf="activeTab === 'Rechazar artículo KB'"><div class="mb-7"><p class="mb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-red-700">Revisión de contenido</p><h1 class="text-3xl font-bold tracking-tight text-slate-900 max-sm:text-2xl">Rechazar artículo KB</h1><p class="mt-2 text-sm text-slate-500">Indica una observación para que el autor pueda corregir el artículo.</p></div><article *ngFor="let article of articulosPendientes()" class="mb-4 rounded-xl border border-slate-200 bg-white p-5"><h2 class="text-lg font-bold text-slate-900">{{ article.title }}</h2><p class="mt-3 whitespace-pre-line text-sm leading-6 text-slate-600">{{ article.content }}</p><label class="mt-4 block text-sm font-medium text-slate-700">Observación<textarea [name]="'reject-' + article.id" [(ngModel)]="comentarioRechazo[article.id]" rows="3" class="mt-2 w-full rounded-lg border border-slate-200 p-3 text-sm" placeholder="Qué debe corregirse…"></textarea></label><div class="mt-4 flex justify-end"><button type="button" (click)="revisarArticuloKB(article, false)" class="rounded-lg border border-red-200 px-4 py-2 text-sm font-bold text-red-700 hover:bg-red-50">Rechazar artículo</button></div></article><p *ngIf="articulosPendientes().length === 0" class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-slate-500">No hay artículos pendientes de rechazo.</p></section>
-
-        <!-- PERMISOS DE USUARIOS -->
-        <section *ngIf="activeTab === 'Permisos de usuarios'"><div class="mb-7"><p class="mb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-amber-700">Administración de acceso</p><h1 class="text-3xl font-bold tracking-tight text-slate-900 max-sm:text-2xl">Permisos de usuarios</h1><p class="mt-2 text-sm text-slate-500">Asigna el rol de agente a una cuenta existente o elimina una cuenta. Los tickets históricos se conservan.</p></div><div class="overflow-hidden rounded-xl border border-slate-200 bg-white"><div *ngFor="let user of usuariosAdministrables" class="grid grid-cols-1 items-center gap-3 border-b border-slate-100 p-4 last:border-0 md:grid-cols-[minmax(0,1fr)_180px_auto]"><div class="min-w-0"><p class="truncate text-sm font-bold text-slate-900">{{ user.name }}</p><p class="truncate text-xs text-slate-500">{{ user.email }} · {{ user.status }}</p></div><label class="text-xs font-semibold text-slate-500">Permiso<select [name]="'role-' + user.id" [ngModel]="user.role" (ngModelChange)="cambiarRolUsuario(user, $event === 'Agent' ? 'Agent' : 'User')" class="mt-1 h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-800"><option value="User">Usuario</option><option value="Agent">Agente</option></select></label><button type="button" (click)="eliminarUsuario(user)" class="min-h-10 rounded-lg border border-red-200 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-50">Eliminar cuenta</button></div><p *ngIf="usuariosAdministrables.length === 0" class="p-10 text-center text-sm text-slate-500">No hay cuentas de usuario disponibles para asignar.</p></div></section>
-
-        <!-- ============================================ -->
-        <!-- PERFIL DEL USUARIO -->
-        <!-- ============================================ -->
-        <section *ngIf="activeTab === 'Perfil del usuario'">
-          <div class="mb-7">
-            <p class="mb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-amber-700">Cuenta personal</p>
-            <h1 class="text-3xl font-bold tracking-tight text-slate-900 max-sm:text-2xl">Perfil del usuario</h1>
-            <p class="mt-2 text-sm text-slate-500">Administra tus datos de contacto y preferencias de notificación.</p>
-          </div>
-
-          <div class="grid grid-cols-1 items-start gap-5 lg:grid-cols-[260px_minmax(0,1fr)]">
-            <div class="rounded-xl border border-slate-200 bg-white p-6 text-center shadow-sm">
-              <div class="mx-auto grid h-20 w-20 place-items-center rounded-full bg-amber-100 text-2xl font-bold text-amber-900">
-                {{ perfil.nombre.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase() }}
-              </div>
-              <h2 class="mt-4 break-words text-lg font-bold text-slate-900">{{ perfil.nombre }}</h2>
-              <p class="mt-1 break-words text-sm text-slate-500">{{ perfil.cargo }}</p>
-              <span class="mt-4 inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">Cuenta activa</span>
-              <div class="mt-6 border-t border-slate-100 pt-5 text-left">
-                <p class="text-xs text-slate-400">Departamento</p>
-                <p class="mt-1 text-sm font-medium text-slate-700">{{ perfil.departamento }}</p>
-              </div>
-            </div>
-
-            <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm max-sm:p-4">
-              <div class="mb-6 border-b border-slate-100 pb-4">
-                <h2 class="text-base font-bold text-slate-900">Información personal</h2>
-                <p class="mt-1 text-sm text-slate-500">Estos datos se guardan en tu cuenta de Sildra.</p>
-              </div>
-              <form (ngSubmit)="guardarPerfil()" class="space-y-5">
-                <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                  <label class="block text-sm font-medium text-slate-700">Nombre completo *
-                    <input name="perfilNombre" [(ngModel)]="perfil.nombre" required class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100" />
-                  </label>
-                  <label class="block text-sm font-medium text-slate-700">Correo electrónico *
-                    <input name="perfilEmail" [(ngModel)]="perfil.email" type="email" required class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100" />
-                  </label>
-                </div>
-
-                <div class="flex justify-end border-t border-slate-100 pt-5">
-                  <button type="submit" class="min-h-10 rounded-lg bg-amber-400 px-5 py-2 text-sm font-bold text-slate-950 hover:bg-amber-300">Guardar perfil</button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </section>
-
-      </div>
-
-      <footer class="border-t border-slate-200 bg-white px-8 py-4 text-xs text-slate-400 max-sm:px-4">
-        Sildra Support Desk · Panel de gestión de tickets
-      </footer>
-    </main>
-  </div>
-
-  <!-- PALETA DE COMANDOS Y ATAJOS -->
-  <div *ngIf="mostrarPaletaComandos" (click)="mostrarPaletaComandos = false" class="fixed inset-0 z-[70] flex items-start justify-center bg-slate-950/40 p-4 pt-[12vh] backdrop-blur-sm">
-    <div (click)="$event.stopPropagation()" class="w-full max-w-xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
-      <div class="border-b border-slate-100 p-4"><label class="sr-only" for="command-search">Buscar comando</label><input id="command-search" name="commandSearch" [(ngModel)]="busquedaComandos" placeholder="Busca una pantalla o acción…" class="h-12 w-full rounded-lg border border-slate-200 px-4 text-sm outline-none focus:border-amber-400" /><p class="mt-2 text-xs text-slate-400">Navega con <kbd class="rounded border px-1">Alt + 1–9</kbd>, cierra con <kbd class="rounded border px-1">Esc</kbd></p></div>
-      <div class="max-h-[55vh] overflow-y-auto p-2"><button *ngFor="let comando of comandosFiltrados(); let index = index" type="button" (click)="ejecutarComando(comando.nombre)" class="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-sm font-medium text-slate-700 hover:bg-amber-50 hover:text-slate-900"><span class="grid h-8 w-8 place-items-center rounded-lg bg-slate-100 text-lg">{{ comando.icono }}</span><span class="flex-1">{{ comando.nombre }}</span><kbd *ngIf="index < 9" class="rounded border border-slate-200 px-2 py-1 text-[10px] text-slate-400">Alt + {{ index + 1 }}</kbd><span>↵</span></button><p *ngIf="comandosFiltrados().length === 0" class="p-6 text-center text-sm text-slate-500">No hay comandos para esa búsqueda.</p></div>
-    </div>
-  </div>
-
-  <!-- MODAL DE RESOLUCIÓN -->
-  <div *ngIf="mostrarResolucion && ticketResolucion as ticket" class="fixed inset-0 z-[65] flex items-center justify-center overflow-y-auto bg-slate-950/50 p-4 backdrop-blur-sm">
-    <form (ngSubmit)="confirmarResolucion()" class="my-auto w-full max-w-xl rounded-2xl bg-white p-6 shadow-2xl">
-      <p class="text-xs font-bold uppercase tracking-wider text-emerald-700">Cierre documentado</p><h2 class="mt-2 text-xl font-bold text-slate-900">Resolver {{ ticket.id }}</h2><p class="mt-1 text-sm text-slate-500">{{ ticket.titulo }}</p>
-      <label class="mt-5 block text-sm font-semibold text-slate-700">¿Qué pasos seguiste y cuál fue la solución? *<textarea name="resolutionNotes" [(ngModel)]="notasResolucion" required minlength="10" maxlength="5000" rows="6" placeholder="Describe el diagnóstico, las acciones realizadas y cómo confirmaste la solución…" class="mt-2 w-full rounded-lg border border-slate-200 p-3 text-sm leading-6 outline-none focus:border-emerald-500"></textarea></label>
-      <div class="mt-6 flex justify-end gap-3"><button type="button" (click)="mostrarResolucion = false" class="min-h-10 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Cancelar</button><button type="submit" class="min-h-10 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700">Guardar resolución</button></div>
-    </form>
-  </div>
-
-  <!-- MODAL DE ASIGNACIÓN -->
-  <div *ngIf="mostrarAsignacion && ticketSeleccionado as ticket" class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950/50 p-4 backdrop-blur-sm">
-    <div class="my-auto w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
-      <div class="mb-5 flex items-start justify-between gap-4">
-        <div>
-          <p class="text-xs font-bold uppercase tracking-wider text-amber-700">Gestión de equipo</p>
-          <h2 class="mt-2 text-xl font-bold text-slate-900">Asignar ticket</h2>
-          <p class="mt-1 text-sm text-slate-500">{{ ticket.id }} · {{ ticket.titulo }}</p>
         </div>
-        <button type="button" (click)="mostrarAsignacion = false" aria-label="Cerrar" class="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-slate-200 text-xl text-slate-500 hover:bg-slate-50">×</button>
       </div>
-
-      <div class="rounded-lg bg-slate-50 p-4">
-        <p class="text-xs text-slate-500">Solicitante</p>
-        <p class="mt-1 text-sm font-semibold text-slate-800">{{ ticket.solicitante }}</p>
-        <p class="mt-3 text-xs text-slate-500">Cola de soporte</p>
-        <p class="mt-1 text-sm font-semibold text-slate-800">{{ ticket.cola }}</p>
+    }
+    <!-- MENSAJE DE CONFIRMACIÓN -->
+    @if (mensaje) {
+      <div
+        class="fixed bottom-5 right-5 z-[60] flex max-w-[calc(100vw-32px)] items-start gap-3 rounded-xl border p-4 shadow-xl sm:max-w-md"
+        [class]="
+          tipoMensaje === 'error'
+            ? 'fixed bottom-5 right-5 z-[60] flex max-w-[calc(100vw-32px)] items-start gap-3 rounded-xl border border-red-200 bg-white p-4 text-red-800 shadow-xl sm:max-w-md'
+            : tipoMensaje === 'warning'
+              ? 'fixed bottom-5 right-5 z-[60] flex max-w-[calc(100vw-32px)] items-start gap-3 rounded-xl border border-amber-200 bg-white p-4 text-amber-900 shadow-xl sm:max-w-md'
+              : 'fixed bottom-5 right-5 z-[60] flex max-w-[calc(100vw-32px)] items-start gap-3 rounded-xl border border-emerald-200 bg-white p-4 text-emerald-800 shadow-xl sm:max-w-md'
+        "
+      >
+        <span
+          class="grid h-7 w-7 shrink-0 place-items-center rounded-full"
+          [class]="
+            tipoMensaje === 'error'
+              ? 'grid h-7 w-7 shrink-0 place-items-center rounded-full bg-red-50 text-red-700'
+              : tipoMensaje === 'warning'
+                ? 'grid h-7 w-7 shrink-0 place-items-center rounded-full bg-amber-50 text-amber-800'
+                : 'grid h-7 w-7 shrink-0 place-items-center rounded-full bg-emerald-50 text-emerald-700'
+          "
+          >{{ tipoMensaje === 'error' ? '!' : tipoMensaje === 'warning' ? 'i' : '✓' }}</span
+        >
+        <p class="min-w-0 flex-1 break-words pt-1 text-sm font-medium">{{ mensaje }}</p>
+        <button
+          type="button"
+          (click)="cerrarMensaje()"
+          aria-label="Cerrar mensaje"
+          class="shrink-0 px-1 text-lg leading-6 opacity-60 hover:opacity-100"
+        >
+          ×
+        </button>
       </div>
-
-      <label class="mt-5 block text-sm font-semibold text-slate-700">Seleccionar agente
-        <select [(ngModel)]="agenteSeleccionado" class="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100">
-          <option value="">Sin asignar</option>
-          <option *ngFor="let agente of agentes" [value]="agente.id">{{ agente.name }} · {{ agente.role }}</option>
-        </select>
-      </label>
-
-      <div class="mt-7 flex flex-wrap justify-end gap-3">
-        <button type="button" (click)="mostrarAsignacion = false" class="min-h-10 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Cancelar</button>
-        <button type="button" (click)="asignarAgente()" class="min-h-10 rounded-lg bg-amber-400 px-4 py-2 text-sm font-bold text-slate-950 hover:bg-amber-300">Guardar asignación</button>
-      </div>
-    </div>
+    }
   </div>
-
-  <!-- MENSAJE DE CONFIRMACIÓN -->
-  <div *ngIf="mensaje" class="fixed bottom-5 right-5 z-[60] flex max-w-[calc(100vw-32px)] items-start gap-3 rounded-xl border p-4 shadow-xl sm:max-w-md" [class]="tipoMensaje === 'error' ? 'fixed bottom-5 right-5 z-[60] flex max-w-[calc(100vw-32px)] items-start gap-3 rounded-xl border border-red-200 bg-white p-4 text-red-800 shadow-xl sm:max-w-md' : tipoMensaje === 'warning' ? 'fixed bottom-5 right-5 z-[60] flex max-w-[calc(100vw-32px)] items-start gap-3 rounded-xl border border-amber-200 bg-white p-4 text-amber-900 shadow-xl sm:max-w-md' : 'fixed bottom-5 right-5 z-[60] flex max-w-[calc(100vw-32px)] items-start gap-3 rounded-xl border border-emerald-200 bg-white p-4 text-emerald-800 shadow-xl sm:max-w-md'">
-    <span class="grid h-7 w-7 shrink-0 place-items-center rounded-full" [class]="tipoMensaje === 'error' ? 'grid h-7 w-7 shrink-0 place-items-center rounded-full bg-red-50 text-red-700' : tipoMensaje === 'warning' ? 'grid h-7 w-7 shrink-0 place-items-center rounded-full bg-amber-50 text-amber-800' : 'grid h-7 w-7 shrink-0 place-items-center rounded-full bg-emerald-50 text-emerald-700'">{{ tipoMensaje === 'error' ? '!' : tipoMensaje === 'warning' ? 'i' : '✓' }}</span>
-    <p class="min-w-0 flex-1 break-words pt-1 text-sm font-medium">{{ mensaje }}</p>
-    <button type="button" (click)="cerrarMensaje()" aria-label="Cerrar mensaje" class="shrink-0 px-1 text-lg leading-6 opacity-60 hover:opacity-100">×</button>
-  </div>
-</div>
+}
