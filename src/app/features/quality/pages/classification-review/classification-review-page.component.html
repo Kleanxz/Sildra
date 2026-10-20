@@ -1,0 +1,49 @@
+@if (app.activeTab === 'Revisión de clasificación') {
+  <section>
+    <div class="mb-7">
+      <p class="mb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-amber-700">
+        Calidad de datos
+      </p>
+      <h1 class="text-3xl font-bold tracking-tight text-slate-900 max-sm:text-2xl">
+        Revisión de clasificación
+      </h1>
+      <p class="mt-2 text-sm text-slate-500">
+        Corrige la categoría de tickets asignados y guarda la revisión en su historial.
+      </p>
+    </div>
+    <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
+      @for (ticket of app.tickets; track app.trackTicketById($index, ticket)) {
+        <div
+          class="grid grid-cols-1 items-center gap-4 border-b border-slate-100 p-4 last:border-0 md:grid-cols-[minmax(0,1fr)_200px_auto]"
+        >
+          <div class="min-w-0">
+            <p class="text-xs font-semibold text-slate-400">
+              {{ ticket.id }} · {{ ticket.estado }}
+            </p>
+            <p class="mt-1 break-words text-sm font-bold text-slate-900">{{ ticket.titulo }}</p>
+            <p class="mt-1 text-xs text-slate-500">Categoría actual: {{ ticket.categoria }}</p>
+          </div>
+          <select
+            [name]="'category-' + ticket.dbId"
+            [(ngModel)]="app.categoriaEdicion[ticket.dbId]"
+            class="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm"
+          >
+            @for (categoria of app.categorias; track categoria) {
+              <option [value]="categoria">{{ categoria }}</option>
+            }
+          </select>
+          <button
+            type="button"
+            (click)="app.guardarClasificacion(ticket)"
+            class="min-h-10 rounded-lg border border-amber-200 px-4 py-2 text-sm font-semibold text-amber-900 hover:bg-amber-50"
+          >
+            Guardar revisión
+          </button>
+        </div>
+      }
+      @if (app.tickets.length === 0) {
+        <p class="p-10 text-center text-sm text-slate-500">No hay tickets para revisar.</p>
+      }
+    </div>
+  </section>
+}

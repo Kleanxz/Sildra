@@ -1,3 +1,46 @@
 /* You can add global styles to this file, and also import other style files */
 
 @import 'tailwindcss';
+
+@keyframes support-screen-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes support-card-enter {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+main > div > section {
+  animation: support-screen-enter 280ms cubic-bezier(.2,.7,.2,1) both;
+}
+
+main > div > section article {
+  animation: support-card-enter 320ms ease-out both;
+}
+
+main > div > section article:nth-of-type(2) { animation-delay: 35ms; }
+main > div > section article:nth-of-type(3) { animation-delay: 70ms; }
+main > div > section article:nth-of-type(4) { animation-delay: 105ms; }
+
+main > div > section button:not(:disabled) {
+  transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+
+main > div > section button:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+main > div > section button:not(:disabled):active {
+  transform: translateY(0) scale(.985);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}

@@ -1,0 +1,115 @@
+<section
+  class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm max-sm:p-4"
+  aria-labelledby="ticket-chat-title"
+>
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <div>
+      <h3 id="ticket-chat-title" class="text-base font-bold text-slate-900">
+        Conversación del ticket
+      </h3>
+      <p class="mt-1 text-sm text-slate-500">
+        Comunícate aquí con el solicitante o con el equipo de soporte.
+      </p>
+    </div>
+    <button
+      type="button"
+      (click)="refreshRequested.emit()"
+      [disabled]="cargando"
+      class="min-h-9 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+    >
+      Actualizar
+    </button>
+  </div>
+
+  @if (cargando && mensajes.length === 0) {
+    <div role="status" class="mt-5 rounded-lg bg-slate-50 p-4 text-sm text-slate-500">
+      Cargando conversación…
+    </div>
+  }
+  @if (!cargando && mensajes.length === 0 && !error) {
+    <div
+      class="mt-5 rounded-lg border border-dashed border-slate-200 p-5 text-center text-sm text-slate-500"
+    >
+      Todavía no hay mensajes. Puedes iniciar la conversación.
+    </div>
+  }
+
+  @if (mensajes.length > 0) {
+    <div
+      class="mt-5 max-h-96 space-y-3 overflow-y-auto rounded-lg bg-slate-50 p-4"
+      aria-live="polite"
+    >
+      @for (chatMessage of mensajes; track chatMessage) {
+        <article
+          class="flex"
+          [class.justify-end]="mensajeChatEsMio(chatMessage)"
+          [class.justify-start]="!mensajeChatEsMio(chatMessage)"
+        >
+          <div
+            class="max-w-[85%] rounded-xl border px-4 py-3 shadow-sm"
+            [class.border-amber-200]="mensajeChatEsMio(chatMessage)"
+            [class.bg-amber-50]="mensajeChatEsMio(chatMessage)"
+            [class.border-slate-200]="!mensajeChatEsMio(chatMessage)"
+            [class.bg-white]="!mensajeChatEsMio(chatMessage)"
+          >
+            <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <span class="text-sm font-semibold text-slate-900">{{ chatMessage.authorName }}</span>
+              <span
+                class="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600"
+                >{{
+                  chatMessage.authorRole === 'Admin'
+                    ? 'Administrador'
+                    : chatMessage.authorRole === 'Agent'
+                      ? 'Agente'
+                      : 'Solicitante'
+                }}</span
+              >
+              <time class="text-xs text-slate-400">{{
+                formatearFecha(chatMessage.createdAt)
+              }}</time>
+            </div>
+            <p class="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-slate-700">
+              {{ chatMessage.message }}
+            </p>
+          </div>
+        </article>
+      }
+    </div>
+  }
+
+  @if (error) {
+    <p
+      role="alert"
+      class="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+    >
+      {{ error }}
+    </p>
+  }
+
+  <form (ngSubmit)="sendRequested.emit()" class="mt-5 space-y-3">
+    <label for="ticket-chat-message" class="block text-sm font-semibold text-slate-700"
+      >Escribe un mensaje</label
+    >
+    <textarea
+      id="ticket-chat-message"
+      name="ticketChatMessage"
+      [ngModel]="nuevoMensaje"
+      (ngModelChange)="nuevoMensajeChange.emit($event)"
+      required
+      maxlength="4000"
+      rows="3"
+      placeholder="Describe tu consulta o comparte una actualización…"
+      class="w-full resize-y rounded-lg border border-slate-200 px-3 py-3 text-sm leading-6 outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
+    ></textarea>
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <span class="text-xs text-slate-400">{{ nuevoMensaje.length }}/4000 caracteres</span>
+      <button
+        type="submit"
+        [disabled]="!nuevoMensaje.trim() || enviando"
+        class="min-h-10 rounded-lg bg-amber-400 px-5 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {{ enviando ? 'Enviando…' : 'Enviar mensaje' }}
+      </button>
+    </div>
+  </form>
+</section>
