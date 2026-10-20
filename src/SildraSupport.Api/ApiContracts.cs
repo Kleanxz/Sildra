@@ -21,6 +21,15 @@ public sealed record UpdateTicketRequest(
     Guid? AssigneeId);
 
 public sealed record ResolveTicketRequest(string ResolutionNotes);
+public sealed record SendTicketChatMessageRequest(string Message);
+public sealed record TicketChatMessageResponse(
+    Guid Id,
+    Guid TicketId,
+    Guid? AuthorId,
+    string AuthorName,
+    string AuthorRole,
+    string Message,
+    DateTime CreatedAt);
 public sealed record UpdateUserRoleRequest(string Role);
 public sealed record CreateKnowledgeArticleRequest(
     string Title,

@@ -31,6 +31,18 @@ internal sealed class PostgresSupportStore(NpgsqlDataSource dataSource)
             CREATE INDEX IF NOT EXISTS ix_ticket_requester_ref ON ticket (requester_ref);
             ALTER TABLE ticket ADD COLUMN IF NOT EXISTS resolution_notes text NOT NULL DEFAULT '';
             ALTER TABLE ticket ADD COLUMN IF NOT EXISTS requester_phone varchar(40) NOT NULL DEFAULT '';
+            CREATE TABLE IF NOT EXISTS ticket_chat_message (
+                id uuid PRIMARY KEY,
+                ticket_id uuid NOT NULL REFERENCES ticket(id) ON DELETE CASCADE,
+                tenant_id uuid NOT NULL,
+                author_id uuid NULL REFERENCES app_user(id) ON DELETE SET NULL,
+                author_name varchar(120) NOT NULL,
+                author_role varchar(40) NOT NULL,
+                message text NOT NULL CHECK (length(btrim(message)) BETWEEN 1 AND 4000),
+                created_at timestamptz NOT NULL DEFAULT now()
+            );
+            CREATE INDEX IF NOT EXISTS ix_ticket_chat_message_ticket_created
+                ON ticket_chat_message (ticket_id, created_at, id);
             """;
 
         await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
@@ -310,6 +322,91 @@ internal sealed class PostgresSupportStore(NpgsqlDataSource dataSource)
                 AsUtc(reader.GetDateTime(15)), AsUtc(reader.GetDateTime(16)), reader.GetString(17), reader.GetString(18)));
         }
         return tickets;
+    }
+
+    public async Task<IReadOnlyList<TicketChatMessageResponse>?> GetTicketChatMessagesAsync(
+        Guid ticketId, Guid actorId, CancellationToken cancellationToken = default)
+    {
+        await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
+        const string accessSql = """
+            SELECT t.tenant_id
+            FROM ticket t
+            JOIN app_user actor ON actor.id = @actor_id
+            WHERE t.id = @ticket_id
+              AND (
+                  lower(actor.role) = 'admin'
+                  OR t.requester_ref = actor.id::text
+                  OR (lower(actor.role) = 'agent' AND EXISTS (
+                      SELECT 1 FROM assignment active_assignment
+                      WHERE active_assignment.ticket_id = t.id
+                        AND active_assignment.assignee_ref = actor.id::text
+                        AND active_assignment.ended_at IS NULL
+                  ))
+              );
+            """;
+        await using (var access = new NpgsqlCommand(accessSql, connection))
+        {
+            Add(access, "actor_id", NpgsqlDbType.Uuid, actorId);
+            Add(access, "ticket_id", NpgsqlDbType.Uuid, ticketId);
+            if (await access.ExecuteScalarAsync(cancellationToken) is null) return null;
+        }
+
+        const string sql = """
+            SELECT id, ticket_id, author_id, author_name, author_role, message, created_at
+            FROM ticket_chat_message
+            WHERE ticket_id = @ticket_id
+            ORDER BY created_at, id;
+            """;
+        await using var command = new NpgsqlCommand(sql, connection);
+        Add(command, "ticket_id", NpgsqlDbType.Uuid, ticketId);
+        var messages = new List<TicketChatMessageResponse>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            messages.Add(new TicketChatMessageResponse(
+                reader.GetGuid(0), reader.GetGuid(1), reader.IsDBNull(2) ? null : reader.GetGuid(2),
+                reader.GetString(3), reader.GetString(4), reader.GetString(5), AsUtc(reader.GetDateTime(6))));
+        }
+        return messages;
+    }
+
+    public async Task<TicketChatMessageResponse?> CreateTicketChatMessageAsync(
+        Guid ticketId, Guid actorId, string message, CancellationToken cancellationToken = default)
+    {
+        const string sql = """
+            INSERT INTO ticket_chat_message (
+                id, ticket_id, tenant_id, author_id, author_name, author_role, message, created_at)
+            SELECT @id, t.id, t.tenant_id, actor.id, actor.name,
+                   CASE lower(actor.role) WHEN 'admin' THEN 'Admin' WHEN 'agent' THEN 'Agent' ELSE 'User' END,
+                   @message, now()
+            FROM ticket t
+            JOIN app_user actor ON actor.id = @actor_id
+            WHERE t.id = @ticket_id
+              AND lower(actor.role) IN ('admin', 'agent', 'user')
+              AND (
+                  lower(actor.role) = 'admin'
+                  OR t.requester_ref = actor.id::text
+                  OR (lower(actor.role) = 'agent' AND EXISTS (
+                      SELECT 1 FROM assignment active_assignment
+                      WHERE active_assignment.ticket_id = t.id
+                        AND active_assignment.assignee_ref = actor.id::text
+                        AND active_assignment.ended_at IS NULL
+                  ))
+              )
+            RETURNING id, ticket_id, author_id, author_name, author_role, message, created_at;
+            """;
+        await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
+        await using var command = new NpgsqlCommand(sql, connection);
+        Add(command, "id", NpgsqlDbType.Uuid, Guid.NewGuid());
+        Add(command, "ticket_id", NpgsqlDbType.Uuid, ticketId);
+        Add(command, "actor_id", NpgsqlDbType.Uuid, actorId);
+        Add(command, "message", NpgsqlDbType.Text, message);
+        await using var reader = await command.ExecuteReaderAsync(CommandBehavior.SingleRow, cancellationToken);
+        return await reader.ReadAsync(cancellationToken)
+            ? new TicketChatMessageResponse(
+                reader.GetGuid(0), reader.GetGuid(1), reader.IsDBNull(2) ? null : reader.GetGuid(2),
+                reader.GetString(3), reader.GetString(4), reader.GetString(5), AsUtc(reader.GetDateTime(6)))
+            : null;
     }
 
     public async Task<TicketResponse?> CreateTicketAsync(
