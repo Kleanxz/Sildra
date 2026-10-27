@@ -112,11 +112,13 @@ app.UseExceptionHandler(errorApp => errorApp.Run(async context =>
 
 try
 {
-    await app.Services.GetRequiredService<PostgresSupportStore>().EnsureAppUserTableAsync();
+    var supportStore = app.Services.GetRequiredService<PostgresSupportStore>();
+    await supportStore.EnsureAppUserTableAsync();
+    await supportStore.EnsureSupportTablesAsync();
 }
 catch (NpgsqlException exception)
 {
-    app.Logger.LogWarning("No se pudo preparar la tabla de cuentas locales en PostgreSQL (SQLSTATE {SqlState}). Revisa la conexión y el esquema.", exception.SqlState);
+    app.Logger.LogWarning("No se pudieron preparar las tablas auxiliares de PostgreSQL (SQLSTATE {SqlState}). Revisa la conexión y el esquema.", exception.SqlState);
 }
 
 app.UseCors("SildraAngular");

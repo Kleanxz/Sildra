@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import type { App } from '../../../../app';
+import type { AppShellComponent } from '../../../../core/layout/app-shell/app-shell.component';
 
 @Component({
   selector: 'app-create-ticket-page',
@@ -11,11 +11,18 @@ import type { App } from '../../../../app';
 })
 export class CreateTicketPageComponent {
   @Input({ required: true }) app!: Pick<
-    App,
+    AppShellComponent,
     | 'activeTab'
     | 'categorias'
     | 'cerrarFormulario'
     | 'crearTicket'
+    | 'alternarFormularioCategoria'
+    | 'cerrarFormularioCategoria'
+    | 'esAdmin'
+    | 'guardandoCategoria'
+    | 'guardarCategoria'
+    | 'mostrarFormularioCategoria'
+    | 'nuevaCategoria'
     | 'nuevoTicket'
     | 'organizaciones'
     | 'perfil'

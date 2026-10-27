@@ -24,6 +24,9 @@ export interface Ticket {
   slaRestante: number;
   slaDeadline: string | null;
   resolutionNotes: string;
+  knowledgeArticleId?: string | null;
+  knowledgeArticleTitle?: string | null;
+  knowledgeArticleContent?: string | null;
 }
 
 export interface ApiTicket {
@@ -46,6 +49,9 @@ export interface ApiTicket {
   createdAt: string;
   slaDeadline: string;
   resolutionNotes: string;
+  knowledgeArticleId?: string | null;
+  knowledgeArticleTitle?: string | null;
+  knowledgeArticleContent?: string | null;
 }
 
 export interface TicketChatMessage {

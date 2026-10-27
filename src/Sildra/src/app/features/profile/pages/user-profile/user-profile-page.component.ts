@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import type { App } from '../../../../app';
+import type { AppShellComponent } from '../../../../core/layout/app-shell/app-shell.component';
 
 @Component({
   selector: 'app-user-profile-page',
@@ -10,5 +10,5 @@ import type { App } from '../../../../app';
   templateUrl: './user-profile-page.component.html',
 })
 export class UserProfilePageComponent {
-  @Input({ required: true }) app!: Pick<App, 'activeTab' | 'guardarPerfil' | 'perfil'>;
+  @Input({ required: true }) app!: Pick<AppShellComponent, 'activeTab' | 'guardarPerfil' | 'perfil'>;
 }

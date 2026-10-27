@@ -95,9 +95,12 @@ internal static partial class ApiEndpoints
         if (!TryGetUserId(http.User, out var actorId)) return Results.Unauthorized();
         if (!IsAdmin(http.User) && !IsAgent(http.User)) return Results.Forbid();
         var notes = request.ResolutionNotes?.Trim() ?? string.Empty;
-        if (notes.Length is < 10 or > 5000) return Results.BadRequest(new { message = "Describe cómo resolviste el ticket (entre 10 y 5000 caracteres)." });
-        var ticket = await store.ResolveTicketAsync(id, actorId, GetTenantId(http.User), IsAdmin(http.User), IsAgent(http.User), notes, cancellationToken);
-        return ticket is null ? Results.NotFound(new { message = "El ticket no existe o no está asignado a tu cuenta." }) : Results.Ok(ticket);
+        if (notes.Length > 5000 || (request.KnowledgeArticleId is null && notes.Length < 10))
+            return Results.BadRequest(new { message = "Escribe al menos 10 caracteres o selecciona una guía publicada; las notas admiten hasta 5000 caracteres." });
+        var ticket = await store.ResolveTicketAsync(id, actorId, GetTenantId(http.User), IsAdmin(http.User), IsAgent(http.User), notes, request.KnowledgeArticleId, cancellationToken);
+        return ticket is null
+            ? Results.NotFound(new { message = "El ticket no existe, no está asignado a tu cuenta o la guía publicada no está disponible para esta organización." })
+            : Results.Ok(ticket);
     }
 
     private static async Task<IResult> ReviewClassificationAsync(Guid id, ReviewClassificationRequest request, PostgresSupportStore store, HttpContext http, CancellationToken cancellationToken)

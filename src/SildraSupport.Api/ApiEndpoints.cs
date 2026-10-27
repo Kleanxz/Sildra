@@ -6,6 +6,7 @@ internal static partial class ApiEndpoints
     {
         MapHealthEndpoints(app);
         MapAuthEndpoints(app);
+        MapCategoryEndpoints(app);
         MapOrganizationEndpoints(app);
         MapTicketEndpoints(app);
         MapUserEndpoints(app);

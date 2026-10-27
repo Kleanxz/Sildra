@@ -50,6 +50,71 @@ internal sealed class PostgresSupportStore(NpgsqlDataSource dataSource)
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
 
+    public async Task EnsureSupportTablesAsync(CancellationToken cancellationToken = default)
+    {
+        const string sql = """
+            CREATE TABLE IF NOT EXISTS support_category (
+                id uuid PRIMARY KEY,
+                name varchar(80) NOT NULL,
+                normalized_name varchar(80) NOT NULL UNIQUE,
+                created_by_ref varchar(64),
+                created_at timestamptz NOT NULL DEFAULT now()
+            );
+            INSERT INTO support_category (id, name, normalized_name)
+            VALUES
+                (gen_random_uuid(), 'Hardware', 'hardware'),
+                (gen_random_uuid(), 'Software', 'software'),
+                (gen_random_uuid(), 'Redes', 'redes'),
+                (gen_random_uuid(), 'Telefonía', 'telefonía'),
+                (gen_random_uuid(), 'Accesos', 'accesos'),
+                (gen_random_uuid(), 'Otro', 'otro')
+            ON CONFLICT (normalized_name) DO NOTHING;
+
+            CREATE TABLE IF NOT EXISTS ticket_knowledge_article (
+                ticket_id uuid PRIMARY KEY REFERENCES ticket(id) ON DELETE CASCADE,
+                article_id uuid NOT NULL REFERENCES knowledge_article(id) ON DELETE RESTRICT,
+                version_id uuid NOT NULL REFERENCES knowledge_version(id) ON DELETE RESTRICT,
+                article_title varchar(160) NOT NULL,
+                attached_by_ref varchar(64) NOT NULL,
+                attached_at timestamptz NOT NULL DEFAULT now()
+            );
+            CREATE INDEX IF NOT EXISTS ix_ticket_knowledge_article_article
+                ON ticket_knowledge_article (article_id);
+            """;
+
+        await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
+        await using var command = new NpgsqlCommand(sql, connection);
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<string>> GetSupportCategoriesAsync(CancellationToken cancellationToken = default)
+    {
+        const string sql = "SELECT name FROM support_category ORDER BY lower(name), name;";
+        await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
+        await using var command = new NpgsqlCommand(sql, connection);
+        var categories = new List<string>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken)) categories.Add(reader.GetString(0));
+        return categories;
+    }
+
+    public async Task<string?> AddSupportCategoryAsync(
+        Guid adminId, string name, CancellationToken cancellationToken = default)
+    {
+        const string sql = """
+            INSERT INTO support_category (id, name, normalized_name, created_by_ref)
+            VALUES (@id, @name, lower(@name), @created_by)
+            ON CONFLICT (normalized_name) DO NOTHING
+            RETURNING name;
+            """;
+        await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
+        await using var command = new NpgsqlCommand(sql, connection);
+        Add(command, "id", NpgsqlDbType.Uuid, Guid.NewGuid());
+        Add(command, "name", NpgsqlDbType.Varchar, name);
+        Add(command, "created_by", NpgsqlDbType.Varchar, adminId.ToString());
+        return await command.ExecuteScalarAsync(cancellationToken) as string;
+    }
+
     public async Task<SupportUser?> FindUserByEmailAsync(string email, CancellationToken cancellationToken = default)
     {
         const string sql = """
@@ -275,7 +340,8 @@ internal sealed class PostgresSupportStore(NpgsqlDataSource dataSource)
                    t.created_at,
                    COALESCE(sla.target_at, t.created_at + CASE lower(COALESCE(t.priority, 'p3'))
                        WHEN 'p1' THEN interval '4 hours' WHEN 'p2' THEN interval '8 hours'
-                       ELSE interval '24 hours' END), COALESCE(t.resolution_notes, ''), COALESCE(t.requester_phone, '')
+                       ELSE interval '24 hours' END), COALESCE(t.resolution_notes, ''), COALESCE(t.requester_phone, ''),
+                   ticket_knowledge.article_id, ticket_knowledge.article_title, linked_version.content_md
             FROM ticket t
             LEFT JOIN app_user requester ON t.requester_ref = requester.id::text
             LEFT JOIN tenant ON tenant.id = t.tenant_id
@@ -302,6 +368,8 @@ internal sealed class PostgresSupportStore(NpgsqlDataSource dataSource)
                 ORDER BY assigned_at DESC LIMIT 1
             ) active_assignment ON true
             LEFT JOIN app_user agent ON active_assignment.assignee_ref = agent.id::text
+            LEFT JOIN ticket_knowledge_article ticket_knowledge ON ticket_knowledge.ticket_id = t.id
+            LEFT JOIN knowledge_version linked_version ON linked_version.id = ticket_knowledge.version_id
             WHERE @is_admin OR t.requester_ref = @user_id::text
                OR (@is_agent AND active_assignment.assignee_ref = @user_id::text)
             ORDER BY t.created_at DESC;
@@ -319,7 +387,9 @@ internal sealed class PostgresSupportStore(NpgsqlDataSource dataSource)
                 reader.GetString(4), reader.GetString(5), reader.GetString(6), reader.GetString(7),
                 reader.GetString(8), reader.GetString(9), reader.GetString(10), reader.GetString(11),
                 reader.IsDBNull(12) ? null : reader.GetGuid(12), reader.GetString(13), reader.GetString(14),
-                AsUtc(reader.GetDateTime(15)), AsUtc(reader.GetDateTime(16)), reader.GetString(17), reader.GetString(18)));
+                AsUtc(reader.GetDateTime(15)), AsUtc(reader.GetDateTime(16)), reader.GetString(17), reader.GetString(18),
+                reader.IsDBNull(19) ? null : reader.GetGuid(19), reader.IsDBNull(20) ? null : reader.GetString(20),
+                reader.IsDBNull(21) ? null : reader.GetString(21)));
         }
         return tickets;
     }
@@ -633,7 +703,9 @@ internal sealed class PostgresSupportStore(NpgsqlDataSource dataSource)
         return await FindUserByIdAsync(userId, cancellationToken);
     }
 
-    public async Task<TicketResponse?> ResolveTicketAsync(Guid ticketId, Guid actorId, Guid? actorTenantId, bool isAdmin, bool isAgent, string notes, CancellationToken cancellationToken = default)
+    public async Task<TicketResponse?> ResolveTicketAsync(
+        Guid ticketId, Guid actorId, Guid? actorTenantId, bool isAdmin, bool isAgent,
+        string notes, Guid? knowledgeArticleId, CancellationToken cancellationToken = default)
     {
         await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
@@ -661,56 +733,131 @@ internal sealed class PostgresSupportStore(NpgsqlDataSource dataSource)
         if (!isAdmin && (!isAgent || !assigned || actorTenantId != tenantId)) return null;
         if (ticketStatus is "resolved" or "closed" or "cancelled") return null;
 
+        Guid? articleVersionId = null;
+        string? articleTitle = null;
+        string? articleContent = null;
+        if (knowledgeArticleId is Guid selectedArticleId)
+        {
+            await using var findArticle = new NpgsqlCommand("""
+                SELECT v.id, v.content_md
+                FROM knowledge_article a
+                JOIN knowledge_version v ON v.id=COALESCE(a.current_version_id,
+                  (SELECT v2.id FROM knowledge_version v2 WHERE v2.article_id=a.id ORDER BY v2.version_number DESC LIMIT 1))
+                WHERE a.id=@article_id AND lower(a.workflow_state)='published'
+                  AND (a.owner_scope='global' OR a.tenant_id=@tenant_id)
+                LIMIT 1;
+                """, connection, transaction);
+            Add(findArticle, "article_id", NpgsqlDbType.Uuid, selectedArticleId);
+            Add(findArticle, "tenant_id", NpgsqlDbType.Uuid, tenantId);
+            await using var reader = await findArticle.ExecuteReaderAsync(CommandBehavior.SingleRow, cancellationToken);
+            if (!await reader.ReadAsync(cancellationToken)) return null;
+            articleVersionId = reader.GetGuid(0);
+            articleContent = reader.GetString(1);
+            articleTitle = articleContent.Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                .FirstOrDefault()?.Trim().TrimStart('#').Trim() ?? "Guía de solución";
+        }
+
+        var storedNotes = notes.Trim();
+        if (storedNotes.Length == 0 && articleTitle is not null)
+            storedNotes = $"Se compartió la guía de conocimiento: {articleTitle}";
+
         var now = DateTime.UtcNow;
         await using (var update = new NpgsqlCommand("""
             UPDATE ticket SET status='resolved', resolution_notes=@notes, resolved_at=COALESCE(resolved_at,@now),
               updated_by_ref=@actor, updated_at=@now, row_version=row_version+1 WHERE id=@id;
             """, connection, transaction))
         {
-            Add(update, "notes", NpgsqlDbType.Text, notes);
+            Add(update, "notes", NpgsqlDbType.Text, storedNotes);
             Add(update, "now", NpgsqlDbType.TimestampTz, now);
             Add(update, "actor", NpgsqlDbType.Varchar, actorId.ToString());
             Add(update, "id", NpgsqlDbType.Uuid, ticketId);
             await update.ExecuteNonQueryAsync(cancellationToken);
         }
         await InsertTimelineAsync(connection, transaction, ticketId, tenantId, "resolved", actorId.ToString(),
-            JsonSerializer.Serialize(new { resolutionNotes = notes }), cancellationToken);
+            JsonSerializer.Serialize(new { resolutionNotes = storedNotes, knowledgeArticleId, knowledgeArticleTitle = articleTitle }), cancellationToken);
 
-        var articleId = Guid.NewGuid();
-        var versionId = Guid.NewGuid();
-        var title = $"Solución del ticket {ticketNumber}";
-        var articleBody = $"# {title}\n\nAsunto: {ticketSubject.Trim()}\n\n## Procedimiento aplicado\n\n{notes.Trim()}";
-        var checksum = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(articleBody))).ToLowerInvariant();
-        await using (var article = new NpgsqlCommand("""
-            INSERT INTO knowledge_article (id,owner_scope,tenant_id,product_code,module_code,language,audience,workflow_state,owner_ref,created_at,updated_at)
-            VALUES (@id,'tenant',@tenant,'sildra-support','resoluciones','es','support','pending_review',@owner,@now,@now);
-            """, connection, transaction))
+        if (knowledgeArticleId is Guid linkedArticleId && articleVersionId is Guid linkedVersionId && articleTitle is not null)
         {
-            Add(article, "id", NpgsqlDbType.Uuid, articleId);
-            Add(article, "tenant", NpgsqlDbType.Uuid, tenantId);
-            Add(article, "owner", NpgsqlDbType.Varchar, actorId.ToString());
-            Add(article, "now", NpgsqlDbType.TimestampTz, now);
-            await article.ExecuteNonQueryAsync(cancellationToken);
+            await using var link = new NpgsqlCommand("""
+                INSERT INTO ticket_knowledge_article (ticket_id, article_id, version_id, article_title, attached_by_ref, attached_at)
+                VALUES (@ticket_id, @article_id, @version_id, @title, @actor, @now)
+                ON CONFLICT (ticket_id) DO UPDATE SET article_id=EXCLUDED.article_id,
+                  version_id=EXCLUDED.version_id, article_title=EXCLUDED.article_title,
+                  attached_by_ref=EXCLUDED.attached_by_ref, attached_at=EXCLUDED.attached_at;
+                """, connection, transaction);
+            Add(link, "ticket_id", NpgsqlDbType.Uuid, ticketId);
+            Add(link, "article_id", NpgsqlDbType.Uuid, linkedArticleId);
+            Add(link, "version_id", NpgsqlDbType.Uuid, linkedVersionId);
+            Add(link, "title", NpgsqlDbType.Varchar, articleTitle);
+            Add(link, "actor", NpgsqlDbType.Varchar, actorId.ToString());
+            Add(link, "now", NpgsqlDbType.TimestampTz, now);
+            await link.ExecuteNonQueryAsync(cancellationToken);
+
+            await using var notification = new NpgsqlCommand("""
+                INSERT INTO ticket_chat_message (
+                    id, ticket_id, tenant_id, author_id, author_name, author_role, message, created_at)
+                SELECT @id, t.id, t.tenant_id, actor.id, actor.name,
+                       CASE lower(actor.role) WHEN 'admin' THEN 'Admin' ELSE 'Agent' END,
+                       @message, @now
+                FROM ticket t
+                JOIN app_user actor ON actor.id=@actor_id
+                WHERE t.id=@ticket_id;
+                """, connection, transaction);
+            Add(notification, "id", NpgsqlDbType.Uuid, Guid.NewGuid());
+            Add(notification, "message", NpgsqlDbType.Text,
+                $"Soporte compartió la guía “{articleTitle}”. Puedes seguir los pasos en el detalle de tu ticket.");
+            Add(notification, "now", NpgsqlDbType.TimestampTz, now);
+            Add(notification, "actor_id", NpgsqlDbType.Uuid, actorId);
+            Add(notification, "ticket_id", NpgsqlDbType.Uuid, ticketId);
+            await notification.ExecuteNonQueryAsync(cancellationToken);
         }
-        await using (var version = new NpgsqlCommand("""
-            INSERT INTO knowledge_version (id,article_id,version_number,content_md,content_checksum,source_refs,author_ref,sanitization_state,is_immutable,created_at)
-            VALUES (@id,@article,1,@content,@checksum,'[]'::jsonb,@author,'sanitized',false,@now);
-            """, connection, transaction))
+        else
         {
-            Add(version, "id", NpgsqlDbType.Uuid, versionId);
-            Add(version, "article", NpgsqlDbType.Uuid, articleId);
-            Add(version, "content", NpgsqlDbType.Text, articleBody);
-            Add(version, "checksum", NpgsqlDbType.Varchar, checksum);
-            Add(version, "author", NpgsqlDbType.Varchar, actorId.ToString());
-            Add(version, "now", NpgsqlDbType.TimestampTz, now);
-            await version.ExecuteNonQueryAsync(cancellationToken);
+            await using var unlink = new NpgsqlCommand(
+                "DELETE FROM ticket_knowledge_article WHERE ticket_id=@ticket_id;", connection, transaction);
+            Add(unlink, "ticket_id", NpgsqlDbType.Uuid, ticketId);
+            await unlink.ExecuteNonQueryAsync(cancellationToken);
         }
-        await using (var setCurrent = new NpgsqlCommand("UPDATE knowledge_article SET current_version_id=@version WHERE id=@article;", connection, transaction))
+
+        if (knowledgeArticleId is null)
         {
-            Add(setCurrent, "version", NpgsqlDbType.Uuid, versionId);
-            Add(setCurrent, "article", NpgsqlDbType.Uuid, articleId);
-            await setCurrent.ExecuteNonQueryAsync(cancellationToken);
+            var articleId = Guid.NewGuid();
+            var versionId = Guid.NewGuid();
+            var title = $"Solución del ticket {ticketNumber}";
+            var articleBody = $"# {title}\n\nAsunto: {ticketSubject.Trim()}\n\n## Procedimiento aplicado\n\n{storedNotes}";
+            var checksum = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(articleBody))).ToLowerInvariant();
+            await using (var article = new NpgsqlCommand("""
+                INSERT INTO knowledge_article (id,owner_scope,tenant_id,product_code,module_code,language,audience,workflow_state,owner_ref,created_at,updated_at)
+                VALUES (@id,'tenant',@tenant,'sildra-support','resoluciones','es','support','pending_review',@owner,@now,@now);
+                """, connection, transaction))
+            {
+                Add(article, "id", NpgsqlDbType.Uuid, articleId);
+                Add(article, "tenant", NpgsqlDbType.Uuid, tenantId);
+                Add(article, "owner", NpgsqlDbType.Varchar, actorId.ToString());
+                Add(article, "now", NpgsqlDbType.TimestampTz, now);
+                await article.ExecuteNonQueryAsync(cancellationToken);
+            }
+            await using (var version = new NpgsqlCommand("""
+                INSERT INTO knowledge_version (id,article_id,version_number,content_md,content_checksum,source_refs,author_ref,sanitization_state,is_immutable,created_at)
+                VALUES (@id,@article,1,@content,@checksum,'[]'::jsonb,@author,'sanitized',false,@now);
+                """, connection, transaction))
+            {
+                Add(version, "id", NpgsqlDbType.Uuid, versionId);
+                Add(version, "article", NpgsqlDbType.Uuid, articleId);
+                Add(version, "content", NpgsqlDbType.Text, articleBody);
+                Add(version, "checksum", NpgsqlDbType.Varchar, checksum);
+                Add(version, "author", NpgsqlDbType.Varchar, actorId.ToString());
+                Add(version, "now", NpgsqlDbType.TimestampTz, now);
+                await version.ExecuteNonQueryAsync(cancellationToken);
+            }
+            await using (var setCurrent = new NpgsqlCommand("UPDATE knowledge_article SET current_version_id=@version WHERE id=@article;", connection, transaction))
+            {
+                Add(setCurrent, "version", NpgsqlDbType.Uuid, versionId);
+                Add(setCurrent, "article", NpgsqlDbType.Uuid, articleId);
+                await setCurrent.ExecuteNonQueryAsync(cancellationToken);
+            }
         }
+
         await transaction.CommitAsync(cancellationToken);
         return (await GetTicketsByIdsAsync(ticketId, cancellationToken)).FirstOrDefault();
     }
@@ -916,7 +1063,20 @@ internal sealed class PostgresSupportStore(NpgsqlDataSource dataSource)
         await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
         Guid? versionId;
-        await using (var find = new NpgsqlCommand("SELECT current_version_id FROM knowledge_article WHERE id=@id AND (@is_admin OR tenant_id=@tenant_id) AND lower(workflow_state)='pending_review' FOR UPDATE;", connection, transaction))
+        await using (var find = new NpgsqlCommand("""
+            SELECT COALESCE(a.current_version_id, (
+                SELECT v.id
+                FROM knowledge_version v
+                WHERE v.article_id = a.id
+                ORDER BY v.version_number DESC
+                LIMIT 1
+            ))
+            FROM knowledge_article a
+            WHERE a.id=@id
+              AND (@is_admin OR a.tenant_id=@tenant_id)
+              AND lower(a.workflow_state)='pending_review'
+            FOR UPDATE OF a;
+            """, connection, transaction))
         {
             Add(find,"id",NpgsqlDbType.Uuid,articleId); Add(find,"is_admin",NpgsqlDbType.Boolean,isAdmin); AddNullable(find,"tenant_id",NpgsqlDbType.Uuid,tenantId);
             var value = await find.ExecuteScalarAsync(cancellationToken);
@@ -970,7 +1130,9 @@ internal sealed class PostgresSupportStore(NpgsqlDataSource dataSource)
                AND to_regclass('branch') IS NOT NULL
                AND to_regclass('ticket') IS NOT NULL
                AND to_regclass('sla_clock') IS NOT NULL
-               AND to_regclass('app_user') IS NOT NULL;
+               AND to_regclass('app_user') IS NOT NULL
+               AND to_regclass('support_category') IS NOT NULL
+               AND to_regclass('ticket_knowledge_article') IS NOT NULL;
             """, connection);
         return (bool)(await command.ExecuteScalarAsync(cancellationToken) ?? false);
     }
@@ -1008,7 +1170,8 @@ internal sealed class PostgresSupportStore(NpgsqlDataSource dataSource)
                    t.created_at,
                    COALESCE(sla.target_at, t.created_at + CASE lower(COALESCE(t.priority, 'p3'))
                        WHEN 'p1' THEN interval '4 hours' WHEN 'p2' THEN interval '8 hours'
-                       ELSE interval '24 hours' END), COALESCE(t.resolution_notes, ''), COALESCE(t.requester_phone, '')
+                       ELSE interval '24 hours' END), COALESCE(t.resolution_notes, ''), COALESCE(t.requester_phone, ''),
+                   ticket_knowledge.article_id, ticket_knowledge.article_title, linked_version.content_md
             FROM ticket t
             LEFT JOIN app_user requester ON t.requester_ref = requester.id::text
             LEFT JOIN tenant ON tenant.id = t.tenant_id
@@ -1019,6 +1182,8 @@ internal sealed class PostgresSupportStore(NpgsqlDataSource dataSource)
             LEFT JOIN LATERAL (SELECT metadata FROM ticket_timeline timeline WHERE timeline.ticket_id = t.id AND timeline.metadata ->> 'queue' IS NOT NULL ORDER BY timeline.occurred_at DESC LIMIT 1) queue_meta ON true
             LEFT JOIN LATERAL (SELECT assignee_ref FROM assignment WHERE ticket_id = t.id AND ended_at IS NULL ORDER BY assigned_at DESC LIMIT 1) active_assignment ON true
             LEFT JOIN app_user agent ON active_assignment.assignee_ref = agent.id::text
+            LEFT JOIN ticket_knowledge_article ticket_knowledge ON ticket_knowledge.ticket_id = t.id
+            LEFT JOIN knowledge_version linked_version ON linked_version.id = ticket_knowledge.version_id
             WHERE t.id = @id;
             """;
         await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
@@ -1031,7 +1196,9 @@ internal sealed class PostgresSupportStore(NpgsqlDataSource dataSource)
             items.Add(new TicketResponse(reader.GetGuid(0), reader.GetString(1), reader.GetString(2), reader.GetString(3),
                 reader.GetString(4), reader.GetString(5), reader.GetString(6), reader.GetString(7), reader.GetString(8),
                 reader.GetString(9), reader.GetString(10), reader.GetString(11), reader.IsDBNull(12) ? null : reader.GetGuid(12),
-                reader.GetString(13), reader.GetString(14), AsUtc(reader.GetDateTime(15)), AsUtc(reader.GetDateTime(16)), reader.GetString(17), reader.GetString(18)));
+                reader.GetString(13), reader.GetString(14), AsUtc(reader.GetDateTime(15)), AsUtc(reader.GetDateTime(16)), reader.GetString(17), reader.GetString(18),
+                reader.IsDBNull(19) ? null : reader.GetGuid(19), reader.IsDBNull(20) ? null : reader.GetString(20),
+                reader.IsDBNull(21) ? null : reader.GetString(21)));
         }
         return items;
     }

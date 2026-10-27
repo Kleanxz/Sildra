@@ -20,7 +20,8 @@ public sealed record UpdateTicketRequest(
     string Queue,
     Guid? AssigneeId);
 
-public sealed record ResolveTicketRequest(string ResolutionNotes);
+public sealed record ResolveTicketRequest(string? ResolutionNotes, Guid? KnowledgeArticleId = null);
+public sealed record CreateSupportCategoryRequest(string Name);
 public sealed record SendTicketChatMessageRequest(string Message);
 public sealed record TicketChatMessageResponse(
     Guid Id,
@@ -62,4 +63,7 @@ public sealed record TicketResponse(
     DateTime CreatedAt,
     DateTime SlaDeadline,
     string ResolutionNotes,
-    string RequesterPhone);
+    string RequesterPhone,
+    Guid? KnowledgeArticleId = null,
+    string? KnowledgeArticleTitle = null,
+    string? KnowledgeArticleContent = null);

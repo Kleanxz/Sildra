@@ -29,6 +29,8 @@ export class ResolvedTicketsComponent {
           ticket.categoria,
           ticket.solicitante,
           ticket.resolutionNotes,
+          ticket.knowledgeArticleTitle ?? '',
+          ticket.knowledgeArticleContent ?? '',
         ].some((value) => value.toLocaleLowerCase().includes(query)),
     );
   }

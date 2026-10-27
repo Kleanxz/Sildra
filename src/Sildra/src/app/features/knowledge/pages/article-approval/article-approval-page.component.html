@@ -19,9 +19,10 @@
           <button
             type="button"
             (click)="app.revisarArticuloKB(article, true)"
-            class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white"
+            [disabled]="app.revisandoArticuloKB[article.id]"
+            class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-emerald-700 disabled:cursor-wait disabled:opacity-60"
           >
-            Aprobar y publicar
+            {{ app.revisandoArticuloKB[article.id] ? 'Publicando…' : 'Aprobar y publicar' }}
           </button>
         </div>
       </article>

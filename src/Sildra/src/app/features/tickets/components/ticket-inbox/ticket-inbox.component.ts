@@ -15,6 +15,7 @@ export class TicketInboxComponent {
   @Input() agentes: Agent[] = [];
   @Input() isAdmin = false;
   @Input() canHandle = false;
+  @Input() currentUserId: string | null = null;
   @Input() busqueda = '';
   @Input() filtroEstado = '';
   @Input() filtroPrioridad = '';
@@ -32,6 +33,7 @@ export class TicketInboxComponent {
   @Output() filtersCleared = new EventEmitter<void>();
   @Output() createRequested = new EventEmitter<void>();
   @Output() ticketOpened = new EventEmitter<Ticket>();
+  @Output() resolveRequested = new EventEmitter<Ticket>();
   @Output() assignmentRequested = new EventEmitter<Ticket>();
   @Output() csvExportRequested = new EventEmitter<Ticket[]>();
 
@@ -39,6 +41,10 @@ export class TicketInboxComponent {
 
   esAdmin(): boolean {
     return this.isAdmin;
+  }
+
+  puedeResolver(ticket: Ticket): boolean {
+    return this.canHandle && (this.isAdmin || ticket.agenteId === this.currentUserId);
   }
 
   ticketsFiltrados(): Ticket[] {

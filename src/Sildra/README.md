@@ -19,7 +19,14 @@ npm run build
 
 ```text
 src/app/
-├── core/             # Acceso HTTP, layout principal y configuración de rutas
+├── app.config.ts     # Configuración global de Angular
+├── core/             # Infraestructura compartida de la aplicación
+│   ├── http/         # Cliente de la API
+│   ├── layout/       # Cabecera, navegación y shell principal
+│   │   ├── app-header/
+│   │   ├── app-sidebar/
+│   │   └── app-shell/ # Componente raíz, plantilla y especificaciones
+│   └── routing/      # Rutas de la aplicación
 ├── features/         # Pantallas y componentes agrupados por función
 │   ├── administration/
 │   ├── authentication/
@@ -30,11 +37,11 @@ src/app/
 │   ├── quality/
 │   ├── telephony/
 │   └── tickets/
-├── shared/           # Modelos y utilidades compartidas
-├── app.ts             # Coordinación de sesión, navegación y estado de la aplicación
-└── app.html           # Composición del layout y selección de pantallas
+└── shared/           # Modelos y utilidades compartidas
 ```
 
-Cada pantalla vive junto a su plantilla dentro de `features/<función>/pages/`. Los elementos reutilizables de tickets están en `features/tickets/components/`. Los contratos de datos compartidos están en `shared/models/`; el acceso a la API y las rutas están en `core/`.
+Cada pantalla vive junto a su plantilla dentro de `features/<función>/pages/`. Los elementos reutilizables de tickets están en `features/tickets/components/`. El componente raíz y su plantilla están en `core/layout/app-shell/`; los contratos de datos compartidos están en `shared/models/`, y el acceso HTTP y las rutas están en `core/`.
+
+`app-shell.legacy.css` conserva estilos de una versión anterior y no se carga en la compilación actual.
 
 El cliente Angular usa la API local en el puerto `5080`. El backend .NET y los servicios de base de datos permanecen fuera de este workspace Angular.
