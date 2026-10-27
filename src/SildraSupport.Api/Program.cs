@@ -42,7 +42,9 @@ builder.Services.AddSingleton<PostgresSupportStore>();
 builder.Services.AddSingleton<RegistrationEmailSender>();
 builder.Services.AddHostedService<SlaBreachWorker>();
 builder.Services.AddCors(options => options.AddPolicy("SildraAngular", policy =>
-    policy.WithOrigins("http://127.0.0.1:4200", "http://localhost:4200")
+    policy.WithOrigins(
+            "http://127.0.0.1:4200", "http://localhost:4200",
+            "https://127.0.0.1:4200", "https://localhost:4200")
         .AllowAnyHeader()
         .AllowAnyMethod()
         .AllowCredentials()));

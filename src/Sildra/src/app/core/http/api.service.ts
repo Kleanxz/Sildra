@@ -59,6 +59,8 @@ export class ApiService {
     const host = ['localhost', '127.0.0.1'].includes(window.location.hostname)
       ? window.location.hostname
       : '127.0.0.1';
-    return `http://${host}:5080/api`;
+    const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
+    const port = protocol === 'https:' ? 7186 : 5080;
+    return `${protocol}//${host}:${port}/api`;
   }
 }
