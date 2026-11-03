@@ -1,0 +1,96 @@
+<aside
+  class="fixed inset-y-0 left-0 z-30 flex w-64 flex-col overflow-y-auto border-r border-slate-200 bg-white max-md:w-[72px]"
+>
+  <div
+    class="flex h-[76px] items-center gap-3 border-b border-slate-100 px-5 max-md:justify-center max-md:px-2"
+  >
+    <div
+      class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber-400 text-lg font-black text-slate-900"
+    >
+      S
+    </div>
+    <div class="max-md:hidden">
+      <h1 class="text-lg font-extrabold tracking-tight text-slate-900">Sildra</h1>
+      <p class="text-xs text-slate-500">Support Desk</p>
+    </div>
+  </div>
+
+  <div
+    class="mx-3 mt-5 flex items-center gap-3 rounded-xl bg-slate-50 p-3 max-md:justify-center max-md:px-1"
+  >
+    <div
+      class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-slate-900 text-sm font-bold text-amber-300"
+    >
+      SD
+    </div>
+    <div class="min-w-0 max-md:hidden">
+      <p class="truncate text-xs font-bold text-slate-800">Centro de soporte</p>
+      <p class="mt-1 text-[11px] text-slate-500">Área de operaciones</p>
+    </div>
+  </div>
+
+  <nav class="flex-1 px-3 pb-4 pt-6">
+    <p
+      class="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400 max-md:hidden"
+    >
+      Tickets
+    </p>
+
+    @for (seccion of sections; track seccion) {
+      <button
+        type="button"
+        (click)="tabSelected.emit(seccion.nombre)"
+        [class]="
+          activeTab === seccion.nombre
+            ? 'mb-1 flex min-h-11 w-full items-center gap-3 rounded-lg border-l-[3px] border-amber-400 bg-slate-900 px-3 text-left text-sm font-semibold text-white'
+            : 'mb-1 flex min-h-11 w-full items-center gap-3 rounded-lg border-l-[3px] border-transparent px-3 text-left text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900'
+        "
+      >
+        <span
+          class="grid w-6 shrink-0 place-items-center text-lg"
+          [class.text-amber-400]="activeTab === seccion.nombre"
+        >
+          @if (seccion.icono === 'call') {
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="h-5 w-5"
+              aria-hidden="true"
+            >
+              <path
+                d="M5 4h3l2 5-2 1.5a15 15 0 0 0 5.5 5.5L15 14l5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z"
+              />
+            </svg>
+          } @else {
+            {{ seccion.icono }}
+          }
+        </span>
+        <span class="min-w-0 flex-1 max-md:hidden">{{ seccion.nombre }}</span>
+        @if (isAdmin && seccion.nombre === 'Asignar tickets' && ticketsSinAsignarCount > 0) {
+          <span
+            class="rounded-md bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800 max-md:hidden"
+            >{{ ticketsSinAsignarCount }}</span
+          >
+        }
+      </button>
+    }
+  </nav>
+
+  <div class="border-t border-slate-100 p-4 max-md:px-2">
+    <div class="flex items-center gap-3 rounded-lg p-2 max-md:justify-center">
+      <div
+        class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-amber-100 text-xs font-bold text-amber-900"
+      >
+        {{ iniciales }}
+      </div>
+      <div class="min-w-0 max-md:hidden">
+        <p class="truncate text-xs font-bold text-slate-800">{{ profileName }}</p>
+        <p class="mt-1 truncate text-[11px] text-slate-500">{{ profileRole }}</p>
+      </div>
+    </div>
+  </div>
+</aside>

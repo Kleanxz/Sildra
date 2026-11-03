@@ -1,0 +1,135 @@
+@if (app.activeTab === 'Prioridad, SLA y colas') {
+  <section>
+    <div class="mb-7">
+      <p class="mb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-amber-700">
+        Control de servicio
+      </p>
+      <h1 class="text-3xl font-bold tracking-tight text-slate-900 max-sm:text-2xl">
+        Prioridad, SLA y colas
+      </h1>
+      <p class="mt-2 text-sm text-slate-500">
+        Supervisa los compromisos de respuesta y la distribución por equipos.
+      </p>
+    </div>
+    <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div class="rounded-xl border border-slate-200 bg-white p-5">
+        <p class="text-sm text-slate-500">Dentro del SLA</p>
+        <p class="mt-3 text-3xl font-bold text-emerald-700">
+          {{ app.ticketsActivos().length - app.ticketsVencidos().length }}
+        </p>
+        <p class="mt-2 text-xs text-slate-400">Tickets activos no vencidos</p>
+      </div>
+      <div class="rounded-xl border border-slate-200 bg-white p-5">
+        <p class="text-sm text-slate-500">SLA vencidos</p>
+        <p class="mt-3 text-3xl font-bold text-red-700">{{ app.ticketsVencidos().length }}</p>
+        <p class="mt-2 text-xs text-slate-400">Fuera del objetivo de respuesta</p>
+      </div>
+      <div class="rounded-xl border border-slate-200 bg-white p-5">
+        <p class="text-sm text-slate-500">Tickets de prioridad P1</p>
+        <p class="mt-3 text-3xl font-bold text-slate-900">
+          {{ app.ticketsPorPrioridad('P1').length }}
+        </p>
+        <p class="mt-2 text-xs text-slate-400">Casos de atención prioritaria</p>
+      </div>
+    </div>
+    <div class="mb-6 rounded-xl border border-slate-200 bg-white p-5">
+      <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 class="text-base font-bold text-slate-900">Estado de los SLA</h2>
+          <p class="mt-1 text-sm text-slate-500">
+            Consulta el tiempo restante de cada solicitud activa.
+          </p>
+        </div>
+        <select
+          [(ngModel)]="app.filtroPrioridad"
+          aria-label="Filtrar SLA por prioridad"
+          class="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-amber-400"
+        >
+          <option value="">Todas las prioridades</option>
+          @for (prioridad of app.prioridades; track prioridad) {
+            <option [value]="prioridad">{{ prioridad }}</option>
+          }
+        </select>
+      </div>
+      <div class="space-y-4">
+        @for (ticket of app.ticketsSlaFiltrados(); track app.trackTicketById($index, ticket)) {
+          <div class="rounded-lg border border-slate-100 p-4">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <div class="min-w-0 flex-1">
+                <button
+                  type="button"
+                  (click)="app.verDetalleDesdeSeccion(ticket)"
+                  class="break-words text-left text-sm font-semibold text-slate-800 hover:text-amber-700"
+                >
+                  {{ ticket.titulo }}
+                </button>
+                <p class="mt-1 text-xs text-slate-500">
+                  {{ ticket.id }} · {{ ticket.cola }} · {{ ticket.agente }}
+                </p>
+              </div>
+              <span
+                [class]="
+                  app.claseSla(ticket) === 'sla-danger'
+                    ? 'rounded-md bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700'
+                    : app.claseSla(ticket) === 'sla-warning'
+                      ? 'rounded-md bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800'
+                      : 'rounded-md bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700'
+                "
+                >{{ app.textoSla(ticket) }}</span
+              >
+            </div>
+            <div class="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
+              <div
+                class="h-full rounded-full"
+                [style.width.%]="app.porcentajeSla(ticket)"
+                [class]="
+                  app.claseSla(ticket) === 'sla-danger'
+                    ? 'bg-red-500'
+                    : app.claseSla(ticket) === 'sla-warning'
+                      ? 'bg-amber-400'
+                      : 'bg-emerald-500'
+                "
+              ></div>
+            </div>
+            <div class="mt-2 flex justify-between gap-3 text-[11px] text-slate-400">
+              <span>Tiempo objetivo: {{ ticket.slaHoras }} h</span>
+              <span>{{ app.porcentajeSla(ticket) | number: '1.0-0' }}% restante</span>
+            </div>
+          </div>
+        }
+        @if (app.ticketsSlaFiltrados().length === 0) {
+          <p class="py-8 text-center text-sm text-slate-500">
+            No hay tickets activos para esta prioridad.
+          </p>
+        }
+      </div>
+    </div>
+    <div class="rounded-xl border border-slate-200 bg-white p-5">
+      <h2 class="text-base font-bold text-slate-900">Carga por cola</h2>
+      <p class="mt-1 text-sm text-slate-500">
+        Solicitudes activas distribuidas por equipo de soporte.
+      </p>
+      <div class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        @for (cola of app.colas; track cola) {
+          <div class="rounded-lg border border-slate-200 p-4">
+            <p class="text-sm font-semibold text-slate-800">{{ cola }}</p>
+            <p class="mt-3 text-2xl font-bold text-slate-900">
+              {{ app.ticketsPorCola(cola).length }}
+            </p>
+            <p class="mt-1 text-xs text-slate-500">Tickets activos</p>
+            <div class="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100">
+              <div
+                class="h-full rounded-full bg-amber-400"
+                [style.width.%]="
+                  app.ticketsActivos().length
+                    ? (app.ticketsPorCola(cola).length / app.ticketsActivos().length) * 100
+                    : 0
+                "
+              ></div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+}

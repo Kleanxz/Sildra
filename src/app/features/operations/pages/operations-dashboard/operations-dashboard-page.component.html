@@ -1,0 +1,161 @@
+@if (app.activeTab === 'Panel de operación') {
+  <section>
+    <div class="mb-7">
+      <p class="mb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-amber-700">
+        Supervisión
+      </p>
+      <h1 class="text-3xl font-bold tracking-tight text-slate-900 max-sm:text-2xl">
+        Panel de operación
+      </h1>
+      <p class="mt-2 text-sm text-slate-500">
+        Resumen del rendimiento y la carga del equipo de soporte.
+      </p>
+    </div>
+    <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div class="rounded-xl border border-slate-200 bg-white p-5">
+        <p class="text-sm text-slate-500">Total de tickets</p>
+        <p class="mt-3 text-3xl font-bold text-slate-900">{{ app.tickets.length }}</p>
+        <p class="mt-2 text-xs text-slate-400">Solicitudes registradas</p>
+      </div>
+      <div class="rounded-xl border border-slate-200 bg-white p-5">
+        <p class="text-sm text-slate-500">Tickets activos</p>
+        <p class="mt-3 text-3xl font-bold text-slate-900">{{ app.ticketsActivos().length }}</p>
+        <p class="mt-2 text-xs text-slate-400">
+          {{ app.porcentajeEstado('Resuelto') }}% resueltos del total
+        </p>
+      </div>
+      <div class="rounded-xl border border-slate-200 bg-white p-5">
+        <p class="text-sm text-slate-500">Tickets resueltos</p>
+        <p class="mt-3 text-3xl font-bold text-emerald-700">{{ app.ticketsResueltos().length }}</p>
+        <p class="mt-2 text-xs text-slate-400">Solicitudes completadas</p>
+      </div>
+      <div class="rounded-xl border border-slate-200 bg-white p-5">
+        <p class="text-sm text-slate-500">SLA vencidos</p>
+        <p class="mt-3 text-3xl font-bold text-red-700">{{ app.ticketsVencidos().length }}</p>
+        <p class="mt-2 text-xs text-slate-400">Necesitan seguimiento</p>
+      </div>
+    </div>
+    <div class="mb-6 grid grid-cols-1 gap-5 xl:grid-cols-2">
+      <div class="rounded-xl border border-slate-200 bg-white p-5">
+        <h2 class="text-base font-bold text-slate-900">Distribución por estado</h2>
+        <p class="mt-1 text-sm text-slate-500">Proporción de solicitudes registradas.</p>
+        <div class="mt-6 space-y-5">
+          @for (estado of app.estados; track estado) {
+            <div>
+              <div class="mb-2 flex items-center justify-between gap-3">
+                <span class="text-sm text-slate-600">{{ estado }}</span>
+                <span class="text-sm font-semibold text-slate-800"
+                  >{{ app.ticketsPorEstado(estado).length }}
+                  <span class="text-xs font-normal text-slate-400"
+                    >({{ app.porcentajeEstado(estado) }}%)</span
+                  ></span
+                >
+              </div>
+              <div class="h-2 overflow-hidden rounded-full bg-slate-100">
+                <div
+                  class="h-full rounded-full"
+                  [style.width.%]="app.porcentajeEstado(estado)"
+                  [class]="
+                    estado === 'Resuelto'
+                      ? 'bg-emerald-500'
+                      : estado === 'En progreso'
+                        ? 'bg-blue-500'
+                        : estado === 'Pendiente'
+                          ? 'bg-violet-400'
+                          : 'bg-amber-400'
+                  "
+                ></div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+      <div class="rounded-xl border border-slate-200 bg-white p-5">
+        <h2 class="text-base font-bold text-slate-900">Tickets activos por prioridad</h2>
+        <p class="mt-1 text-sm text-slate-500">Identifica dónde concentrar los recursos.</p>
+        <div class="mt-5 space-y-3">
+          <div class="flex items-center justify-between rounded-lg border border-slate-100 p-4">
+            <div class="flex items-center gap-3">
+              <span class="h-2.5 w-2.5 rounded-full bg-red-500"></span>
+              <div>
+                <p class="text-sm font-semibold text-slate-800">P1 · Alta</p>
+                <p class="mt-1 text-xs text-slate-500">Atención prioritaria</p>
+              </div>
+            </div>
+            <span class="text-xl font-bold text-slate-900">{{
+              app.ticketsPorPrioridad('P1').length
+            }}</span>
+          </div>
+          <div class="flex items-center justify-between rounded-lg border border-slate-100 p-4">
+            <div class="flex items-center gap-3">
+              <span class="h-2.5 w-2.5 rounded-full bg-amber-400"></span>
+              <div>
+                <p class="text-sm font-semibold text-slate-800">P2 · Media</p>
+                <p class="mt-1 text-xs text-slate-500">Atención estándar</p>
+              </div>
+            </div>
+            <span class="text-xl font-bold text-slate-900">{{
+              app.ticketsPorPrioridad('P2').length
+            }}</span>
+          </div>
+          <div class="flex items-center justify-between rounded-lg border border-slate-100 p-4">
+            <div class="flex items-center gap-3">
+              <span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+              <div>
+                <p class="text-sm font-semibold text-slate-800">P3 · Baja</p>
+                <p class="mt-1 text-xs text-slate-500">Solicitudes no urgentes</p>
+              </div>
+            </div>
+            <span class="text-xl font-bold text-slate-900">{{
+              app.ticketsPorPrioridad('P3').length
+            }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="rounded-xl border border-slate-200 bg-white p-5">
+      <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 class="text-base font-bold text-slate-900">Actividad que requiere atención</h2>
+          <p class="mt-1 text-sm text-slate-500">Tickets de prioridad alta o con SLA vencido.</p>
+        </div>
+        <button
+          type="button"
+          (click)="app.cambiarPestana('Prioridad, SLA y colas')"
+          class="text-sm font-semibold text-amber-700 hover:text-amber-800"
+        >
+          Ver SLA y colas →
+        </button>
+      </div>
+      <div class="divide-y divide-slate-100">
+        @for (ticket of app.ticketsDeAtencion(); track app.trackTicketById($index, ticket)) {
+          <button
+            type="button"
+            (click)="app.verDetalleDesdeSeccion(ticket)"
+            class="flex w-full flex-wrap items-center justify-between gap-3 py-4 text-left hover:bg-slate-50"
+          >
+            <div class="min-w-0 flex-1">
+              <p class="break-words text-sm font-semibold text-slate-800">{{ ticket.titulo }}</p>
+              <p class="mt-1 text-xs text-slate-500">
+                {{ ticket.id }} · {{ ticket.agente }} · {{ ticket.cola }}
+              </p>
+            </div>
+            <span
+              [class]="
+                ticket.slaRestante <= 0
+                  ? 'rounded-md bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700'
+                  : 'rounded-md bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800'
+              "
+              >{{ app.textoSla(ticket) }}</span
+            >
+          </button>
+        }
+        @if (app.ticketsDeAtencion().length === 0) {
+          <p class="py-8 text-center text-sm text-slate-500">
+            No hay tickets que requieran atención prioritaria.
+          </p>
+        }
+      </div>
+    </div>
+  </section>
+}

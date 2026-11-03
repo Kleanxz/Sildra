@@ -1,59 +1,47 @@
-# SildraSupport
+# Sildra Support
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.1.8.
+Aplicación de soporte construida con Angular 22, componentes standalone y Tailwind CSS.
 
-## Development server
-
-To start a local development server, run:
+## Desarrollo
 
 ```bash
-ng serve
+npm install
+npm start
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+Abre `http://localhost:4200/`. Para generar la compilación de producción:
 
 ```bash
-ng generate component component-name
+npm run build
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Organización de Angular
 
-```bash
-ng generate --help
+```text
+src/app/
+├── app.config.ts     # Configuración global de Angular
+├── core/             # Infraestructura compartida de la aplicación
+│   ├── http/         # Cliente de la API
+│   ├── layout/       # Cabecera, navegación y shell principal
+│   │   ├── app-header/
+│   │   ├── app-sidebar/
+│   │   └── app-shell/ # Componente raíz, plantilla y especificaciones
+│   └── routing/      # Rutas de la aplicación
+├── features/         # Pantallas y componentes agrupados por función
+│   ├── administration/
+│   ├── authentication/
+│   ├── knowledge/
+│   ├── operations/
+│   ├── organizations/
+│   ├── profile/
+│   ├── quality/
+│   ├── telephony/
+│   └── tickets/
+└── shared/           # Modelos y utilidades compartidas
 ```
 
-## Building
+Cada pantalla vive junto a su plantilla dentro de `features/<función>/pages/`. Los elementos reutilizables de tickets están en `features/tickets/components/`. El componente raíz y su plantilla están en `core/layout/app-shell/`; los contratos de datos compartidos están en `shared/models/`, y el acceso HTTP y las rutas están en `core/`.
 
-To build the project run:
+`app-shell.legacy.css` conserva estilos de una versión anterior y no se carga en la compilación actual.
 
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+El cliente Angular usa la API local en el puerto `5080`. El backend .NET y los servicios de base de datos permanecen fuera de este workspace Angular.
