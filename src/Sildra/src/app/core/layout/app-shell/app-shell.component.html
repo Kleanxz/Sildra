@@ -261,7 +261,7 @@
               <option value="">No adjuntar una guía existente</option>
               @for (article of articulosKBPublicados(); track article.id) {
                 <option [value]="article.id">
-                  {{ article.title }}{{ article.productCode ? ' · ' + article.productCode : '' }}
+                  {{ article.title }}
                 </option>
               }
             </select>
@@ -282,8 +282,18 @@
           } @else {
             <p class="mt-2 text-xs leading-5 text-slate-500">
               Si no eliges una guía, la resolución se guardará como una nueva propuesta para la
-              base de conocimiento.
+              base de conocimiento. El nombre o código aparecerá en esta lista cuando se publique.
             </p>
+            <label class="mt-5 block text-sm font-semibold text-slate-700"
+              >Nombre o código descriptivo *<input
+                name="solutionName"
+                [(ngModel)]="nombreSolucion"
+                required
+                minlength="3"
+                maxlength="120"
+                placeholder="Ej. ACCESO-001 — Restablecer contraseña"
+                class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 text-sm font-normal outline-none focus:border-emerald-500"
+            /></label>
           }
           <label class="mt-5 block text-sm font-semibold text-slate-700"
             >Notas adicionales<textarea

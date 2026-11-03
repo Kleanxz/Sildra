@@ -145,6 +145,7 @@ export class AppShellComponent implements OnInit, OnDestroy {
   };
   ticketResolucion: Ticket | null = null;
   notasResolucion = '';
+  nombreSolucion = '';
   articuloResolucionId = '';
   mostrarResolucion = false;
   mostrarPaletaComandos = false;
@@ -851,6 +852,7 @@ export class AppShellComponent implements OnInit, OnDestroy {
       return;
     this.ticketResolucion = ticket;
     this.notasResolucion = '';
+    this.nombreSolucion = '';
     this.articuloResolucionId = '';
     this.mostrarResolucion = true;
   }
@@ -868,30 +870,45 @@ export class AppShellComponent implements OnInit, OnDestroy {
   async confirmarResolucion(): Promise<void> {
     const ticket = this.ticketResolucion;
     const notes = this.notasResolucion.trim();
+    const solutionName = this.nombreSolucion.trim();
     const article = this.articuloResolucionSeleccionado();
-    if (!ticket || (!article && notes.length < 10) || notes.length > 5000) {
-      this.mostrarMensaje('Escribe al menos 10 caracteres o selecciona una guía publicada.', 'error');
+    if (
+      !ticket ||
+      (!article && (notes.length < 10 || solutionName.length < 3 || solutionName.length > 120)) ||
+      notes.length > 5000
+    ) {
+      this.mostrarMensaje(
+        'Escribe una solución de al menos 10 caracteres y un nombre o código de 3 a 120 caracteres, o selecciona una guía publicada.',
+        'error',
+      );
       return;
     }
     try {
       const updated = await this.api<ApiTicket>(`/tickets/${ticket.dbId}/resolve`, {
         method: 'POST',
-        body: JSON.stringify({ resolutionNotes: notes, knowledgeArticleId: article?.id ?? null }),
+        body: JSON.stringify({
+          resolutionNotes: notes,
+          knowledgeArticleId: article?.id ?? null,
+          solutionName: article ? null : solutionName,
+        }),
       });
-      const saved = this.convertirTicket(updated);
-      const index = this.tickets.findIndex((item) => item.dbId === saved.dbId);
-      if (index >= 0) this.tickets[index] = saved;
+      const saved: Ticket = { ...this.convertirTicket(updated), estado: 'Resuelto' };
+      this.tickets = this.tickets.map((item) => item.dbId === saved.dbId ? saved : item);
+      this.paginaActual = 1;
       if (this.ticketSeleccionado?.dbId === saved.dbId) this.ticketSeleccionado = saved;
       await this.cargarArticulosKB();
       this.mostrarResolucion = false;
       this.ticketResolucion = null;
       this.articuloResolucionId = '';
+      this.nombreSolucion = '';
       this.mostrarMensaje(article
         ? `Ticket ${saved.id} resuelto. Se compartió la guía “${article.title}” con el usuario.`
         : `Ticket ${saved.id} resuelto. La solución se guardó en la base de conocimiento para revisión.`,
       );
     } catch (error) {
       this.mostrarMensaje(this.mensajeError(error, 'No se pudo resolver el ticket.'), 'error');
+    } finally {
+      this.changeDetector.markForCheck();
     }
   }
 
