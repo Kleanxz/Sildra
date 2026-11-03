@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import type { App } from '../../../../app';
+import type { AppShellComponent } from '../../../../core/layout/app-shell/app-shell.component';
 
 @Component({
   selector: 'app-sla-queues-page',
@@ -12,7 +12,7 @@ import type { App } from '../../../../app';
 })
 export class SlaQueuesPageComponent {
   @Input({ required: true }) app!: Pick<
-    App,
+    AppShellComponent,
     | 'activeTab'
     | 'claseSla'
     | 'colas'

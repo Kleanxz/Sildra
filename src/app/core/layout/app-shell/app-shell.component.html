@@ -11,11 +11,14 @@
   />
 }
 @if (usuarioActual) {
-  <div class="min-h-screen bg-slate-50 text-slate-800">
+  <div
+    class="session-shell min-h-screen bg-slate-50 text-slate-800"
+    [class.session-shell-exit]="cerrandoSesion"
+  >
     <div class="flex min-h-screen">
       <!-- BARRA LATERAL -->
       <app-sidebar
-        [sections]="seccionesVisibles()"
+        [sections]="seccionesEnBarraLateral()"
         [activeTab]="activeTab"
         [isAdmin]="esAdmin()"
         [ticketsSinAsignarCount]="ticketsSinAsignar().length"
@@ -44,6 +47,7 @@
               [agentes]="agentes"
               [isAdmin]="esAdmin()"
               [canHandle]="puedeAtender()"
+              [currentUserId]="usuarioActual?.id ?? null"
               [busqueda]="busqueda"
               (busquedaChange)="busqueda = $event"
               [filtroEstado]="filtroEstado"
@@ -59,6 +63,7 @@
               (filtersCleared)="limpiarFiltros()"
               (createRequested)="abrirFormulario()"
               (ticketOpened)="verDetalleDesdeSeccion($event)"
+              (resolveRequested)="resolverTicket($event)"
               (assignmentRequested)="abrirAsignacion($event)"
               (csvExportRequested)="exportarCSV($event)"
             />
@@ -247,14 +252,58 @@
           <h2 class="mt-2 text-xl font-bold text-slate-900">Resolver {{ ticket.id }}</h2>
           <p class="mt-1 text-sm text-slate-500">{{ ticket.titulo }}</p>
           <label class="mt-5 block text-sm font-semibold text-slate-700"
-            >¿Qué pasos seguiste y cuál fue la solución? *<textarea
+            >Adjuntar una solución publicada (opcional)
+            <select
+              name="knowledgeArticleId"
+              [(ngModel)]="articuloResolucionId"
+              class="mt-2 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-normal outline-none focus:border-emerald-500"
+            >
+              <option value="">No adjuntar una guía existente</option>
+              @for (article of articulosKBPublicados(); track article.id) {
+                <option [value]="article.id">
+                  {{ article.title }}
+                </option>
+              }
+            </select>
+          </label>
+          @if (articuloResolucionSeleccionado(); as guide) {
+            <div class="mt-3 rounded-lg border border-blue-200 bg-blue-50 p-4">
+              <p class="text-xs font-bold uppercase tracking-wide text-blue-800">
+                Guía que verá el usuario
+              </p>
+              <h3 class="mt-1 font-semibold text-slate-900">{{ guide.title }}</h3>
+              <p class="mt-2 whitespace-pre-line text-sm leading-6 text-slate-700">
+                {{ guide.content }}
+              </p>
+            </div>
+            <p class="mt-2 text-xs leading-5 text-slate-500">
+              Se adjuntará esta guía publicada al ticket y no se creará un artículo duplicado.
+            </p>
+          } @else {
+            <p class="mt-2 text-xs leading-5 text-slate-500">
+              Si no eliges una guía, la resolución se guardará como una nueva propuesta para la
+              base de conocimiento. El nombre o código aparecerá en esta lista cuando se publique.
+            </p>
+            <label class="mt-5 block text-sm font-semibold text-slate-700"
+              >Nombre o código descriptivo *<input
+                name="solutionName"
+                [(ngModel)]="nombreSolucion"
+                required
+                minlength="3"
+                maxlength="120"
+                placeholder="Ej. ACCESO-001 — Restablecer contraseña"
+                class="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 text-sm font-normal outline-none focus:border-emerald-500"
+            /></label>
+          }
+          <label class="mt-5 block text-sm font-semibold text-slate-700"
+            >Notas adicionales<textarea
               name="resolutionNotes"
               [(ngModel)]="notasResolucion"
-              required
-              minlength="10"
+              [required]="!articuloResolucionId"
+              [minlength]="articuloResolucionId ? 0 : 10"
               maxlength="5000"
               rows="6"
-              placeholder="Describe el diagnóstico, las acciones realizadas y cómo confirmaste la solución…"
+              placeholder="Describe el diagnóstico y las acciones realizadas. Son opcionales si adjuntas una guía publicada…"
               class="mt-2 w-full rounded-lg border border-slate-200 p-3 text-sm leading-6 outline-none focus:border-emerald-500"
             ></textarea>
           </label>
@@ -269,7 +318,7 @@
               type="submit"
               class="min-h-10 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700"
             >
-              Guardar resolución
+              {{ articuloResolucionId ? 'Resolver y enviar guía' : 'Guardar resolución' }}
             </button>
           </div>
         </form>

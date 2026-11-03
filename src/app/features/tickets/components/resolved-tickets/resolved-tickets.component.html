@@ -50,6 +50,17 @@
             {{ ticket.resolutionNotes || 'No se registró un procedimiento para este ticket.' }}
           </p>
         </div>
+        @if (ticket.knowledgeArticleTitle && ticket.knowledgeArticleContent) {
+          <div class="mt-3 rounded-lg border border-blue-200 bg-blue-50 p-4">
+            <p class="text-xs font-bold uppercase tracking-wide text-blue-800">
+              Guía compartida por soporte
+            </p>
+            <h3 class="mt-1 font-bold text-slate-900">{{ ticket.knowledgeArticleTitle }}</h3>
+            <p class="mt-2 whitespace-pre-line text-sm leading-6 text-slate-700">
+              {{ ticket.knowledgeArticleContent }}
+            </p>
+          </div>
+        }
       </article>
     }
     @if (ticketsFiltrados().length === 0) {

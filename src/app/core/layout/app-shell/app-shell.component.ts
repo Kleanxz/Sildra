@@ -3,30 +3,30 @@ import { FormsModule } from '@angular/forms';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter, firstValueFrom, Subscription } from 'rxjs';
 
-import { UserAccessPageComponent } from './features/administration/pages/user-access/user-access-page.component';
-import { ArticleApprovalPageComponent } from './features/knowledge/pages/article-approval/article-approval-page.component';
-import { ArticleEditorPageComponent } from './features/knowledge/pages/article-editor/article-editor-page.component';
-import { ArticleRejectionPageComponent } from './features/knowledge/pages/article-rejection/article-rejection-page.component';
-import { KnowledgeBasePageComponent } from './features/knowledge/pages/knowledge-base/knowledge-base-page.component';
-import { OperationsDashboardPageComponent } from './features/operations/pages/operations-dashboard/operations-dashboard-page.component';
-import { SlaQueuesPageComponent } from './features/operations/pages/sla-queues/sla-queues-page.component';
-import { OrganizationManagementPageComponent } from './features/organizations/pages/organization-management/organization-management-page.component';
-import { UserProfilePageComponent } from './features/profile/pages/user-profile/user-profile-page.component';
-import { ClassificationReviewPageComponent } from './features/quality/pages/classification-review/classification-review-page.component';
-import { CallDetailsPageComponent } from './features/telephony/pages/call-details/call-details-page.component';
-import { IncomingHandoffsPageComponent } from './features/telephony/pages/incoming-handoffs/incoming-handoffs-page.component';
-import { AssignTicketsPageComponent } from './features/tickets/pages/assign-tickets/assign-tickets-page.component';
-import { CreateTicketPageComponent } from './features/tickets/pages/create-ticket/create-ticket-page.component';
-import { ResolveTicketsPageComponent } from './features/tickets/pages/resolve-tickets/resolve-tickets-page.component';
+import { UserAccessPageComponent } from '../../../features/administration/pages/user-access/user-access-page.component';
+import { ArticleApprovalPageComponent } from '../../../features/knowledge/pages/article-approval/article-approval-page.component';
+import { ArticleEditorPageComponent } from '../../../features/knowledge/pages/article-editor/article-editor-page.component';
+import { ArticleRejectionPageComponent } from '../../../features/knowledge/pages/article-rejection/article-rejection-page.component';
+import { KnowledgeBasePageComponent } from '../../../features/knowledge/pages/knowledge-base/knowledge-base-page.component';
+import { OperationsDashboardPageComponent } from '../../../features/operations/pages/operations-dashboard/operations-dashboard-page.component';
+import { SlaQueuesPageComponent } from '../../../features/operations/pages/sla-queues/sla-queues-page.component';
+import { OrganizationManagementPageComponent } from '../../../features/organizations/pages/organization-management/organization-management-page.component';
+import { UserProfilePageComponent } from '../../../features/profile/pages/user-profile/user-profile-page.component';
+import { ClassificationReviewPageComponent } from '../../../features/quality/pages/classification-review/classification-review-page.component';
+import { CallDetailsPageComponent } from '../../../features/telephony/pages/call-details/call-details-page.component';
+import { IncomingHandoffsPageComponent } from '../../../features/telephony/pages/incoming-handoffs/incoming-handoffs-page.component';
+import { AssignTicketsPageComponent } from '../../../features/tickets/pages/assign-tickets/assign-tickets-page.component';
+import { CreateTicketPageComponent } from '../../../features/tickets/pages/create-ticket/create-ticket-page.component';
+import { ResolveTicketsPageComponent } from '../../../features/tickets/pages/resolve-tickets/resolve-tickets-page.component';
 
-import { AppHeaderComponent } from './core/layout/app-header/app-header.component';
-import { AppSidebarComponent } from './core/layout/app-sidebar/app-sidebar.component';
-import { AuthViewComponent } from './features/authentication/components/auth-view/auth-view.component';
-import { ResolvedTicketsComponent } from './features/tickets/components/resolved-tickets/resolved-tickets.component';
-import { TicketDetailComponent } from './features/tickets/components/ticket-detail/ticket-detail.component';
-import { TicketInboxComponent } from './features/tickets/components/ticket-inbox/ticket-inbox.component';
-import { ApiService } from './core/http/api.service';
-import { sectionRoutePaths } from './core/routing/app.routes';
+import { AppHeaderComponent } from '../app-header/app-header.component';
+import { AppSidebarComponent } from '../app-sidebar/app-sidebar.component';
+import { AuthViewComponent } from '../../../features/authentication/components/auth-view/auth-view.component';
+import { ResolvedTicketsComponent } from '../../../features/tickets/components/resolved-tickets/resolved-tickets.component';
+import { TicketDetailComponent } from '../../../features/tickets/components/ticket-detail/ticket-detail.component';
+import { TicketInboxComponent } from '../../../features/tickets/components/ticket-inbox/ticket-inbox.component';
+import { ApiService } from '../../http/api.service';
+import { sectionRoutePaths } from '../../routing/app.routes';
 import {
   Agent,
   ApiFailure,
@@ -42,13 +42,13 @@ import {
   Ticket,
   TicketChatMessage,
   WarmHandoff,
-} from './shared/models';
+} from '../../../shared/models';
 import {
   claseSla as calcularClaseSla,
   formatearFecha as formatearFechaUI,
   porcentajeSla as calcularPorcentajeSla,
   textoSla as construirTextoSla,
-} from './shared/utils/ticket-presentation';
+} from '../../../shared/utils/ticket-presentation';
 
 @Component({
   selector: 'app-root',
@@ -78,9 +78,24 @@ import {
     CreateTicketPageComponent,
     ResolveTicketsPageComponent,
   ],
-  templateUrl: './app.html',
+  templateUrl: './app-shell.component.html',
+  styles: [`
+    @keyframes session-shell-enter {
+      from { opacity: 0; transform: translateY(10px) scale(.995); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes session-shell-exit {
+      from { opacity: 1; transform: translateY(0) scale(1); }
+      to { opacity: 0; transform: translateY(-8px) scale(.995); }
+    }
+    .session-shell { animation: session-shell-enter 280ms cubic-bezier(.2,.7,.2,1) both; }
+    .session-shell-exit { animation: session-shell-exit 220ms ease-in both; pointer-events: none; }
+    @media (prefers-reduced-motion: reduce) {
+      .session-shell, .session-shell-exit { animation-duration: 1ms; }
+    }
+  `],
 })
-export class App implements OnInit, OnDestroy {
+export class AppShellComponent implements OnInit, OnDestroy {
   constructor(
     private readonly changeDetector: ChangeDetectorRef,
     private readonly apiService: ApiService,
@@ -118,6 +133,7 @@ export class App implements OnInit, OnDestroy {
   articulosKB: KnowledgeArticle[] = [];
   categoriaEdicion: Record<string, string> = {};
   comentarioRechazo: Record<string, string> = {};
+  revisandoArticuloKB: Record<string, boolean> = {};
   transferenciaNueva = { ticketId: '', queueRef: 'Soporte', extensionRef: '', reason: '' };
   articuloNuevo = {
     title: '',
@@ -129,6 +145,8 @@ export class App implements OnInit, OnDestroy {
   };
   ticketResolucion: Ticket | null = null;
   notasResolucion = '';
+  nombreSolucion = '';
+  articuloResolucionId = '';
   mostrarResolucion = false;
   mostrarPaletaComandos = false;
   busquedaComandos = '';
@@ -144,6 +162,7 @@ export class App implements OnInit, OnDestroy {
   organizaciones: Organization[] = [];
   nuevaOrganizacion = { nombre: '', sucursal: '' };
   usuarioActual: SessionUser | null = null;
+  cerrandoSesion = false;
   cargandoSesion = true;
   modoRegistro = false;
   errorAcceso = '';
@@ -166,6 +185,9 @@ export class App implements OnInit, OnDestroy {
   ticketsPorPagina = 6;
 
   mostrarFormulario = false;
+  mostrarFormularioCategoria = false;
+  guardandoCategoria = false;
+  nuevaCategoria = '';
   mostrarDetalle = false;
   mostrarAsignacion = false;
 
@@ -297,12 +319,14 @@ export class App implements OnInit, OnDestroy {
   }
 
   async cerrarSesion(): Promise<void> {
-    try {
-      await this.api('/auth/logout', { method: 'POST' });
-    } catch {
+    this.cerrandoSesion = true;
+    this.changeDetector.markForCheck();
+    void this.api('/auth/logout', { method: 'POST' }).catch(() => {
       // Se limpia la interfaz incluso si la sesión ya venció.
-    }
+    });
+    await new Promise<void>((resolve) => window.setTimeout(resolve, 220));
     this.usuarioActual = null;
+    this.cerrandoSesion = false;
     void this.router.navigateByUrl(sectionRoutePaths['Bandeja de tickets']);
     this.tickets = [];
     this.organizaciones = [];
@@ -338,11 +362,13 @@ export class App implements OnInit, OnDestroy {
     this.cargandoSesion = true;
 
     try {
-      const [tickets, organizations] = await Promise.all([
+      const [tickets, organizations, categories] = await Promise.all([
         this.api<ApiTicket[]>('/tickets'),
         this.api<Organization[]>('/organizations'),
+        this.api<string[]>('/categories').catch(() => this.categorias),
       ]);
       this.organizaciones = organizations;
+      this.categorias = categories;
       this.tickets = tickets.map((ticket) => this.convertirTicket(ticket));
       this.categoriaEdicion = Object.fromEntries(
         this.tickets.map((ticket) => [ticket.dbId, ticket.categoria]),
@@ -404,6 +430,9 @@ export class App implements OnInit, OnDestroy {
       slaRestante: (deadline - this.relojActual) / 3_600_000,
       slaDeadline: source.slaDeadline,
       resolutionNotes: source.resolutionNotes ?? '',
+      knowledgeArticleId: source.knowledgeArticleId ?? null,
+      knowledgeArticleTitle: source.knowledgeArticleTitle ?? null,
+      knowledgeArticleContent: source.knowledgeArticleContent ?? null,
     };
   }
 
@@ -460,6 +489,11 @@ export class App implements OnInit, OnDestroy {
         (!adminOnly.includes(section.nombre) || this.esAdmin()) &&
         (!agentOrAdmin.includes(section.nombre) || this.puedeAtender()),
     );
+  }
+
+  seccionesEnBarraLateral(): NavigationSection[] {
+    const ocultasEnBarra = new Set(['Detalle de ticket', 'Resolver tickets']);
+    return this.seccionesVisibles().filter((section) => !ocultasEnBarra.has(section.nombre));
   }
 
   async guardarOrganizacion(): Promise<void> {
@@ -681,6 +715,45 @@ export class App implements OnInit, OnDestroy {
     }
   }
 
+  alternarFormularioCategoria(): void {
+    if (!this.esAdmin()) return;
+    this.mostrarFormularioCategoria = !this.mostrarFormularioCategoria;
+    this.nuevaCategoria = '';
+  }
+
+  cerrarFormularioCategoria(): void {
+    this.mostrarFormularioCategoria = false;
+    this.nuevaCategoria = '';
+  }
+
+  async guardarCategoria(): Promise<void> {
+    if (!this.esAdmin() || this.guardandoCategoria) return;
+    const name = this.nuevaCategoria.trim();
+    if (name.length < 2 || name.length > 80) {
+      this.mostrarMensaje('El nombre debe tener entre 2 y 80 caracteres.', 'error');
+      return;
+    }
+
+    this.guardandoCategoria = true;
+    try {
+      const created = await this.api<{ name: string }>('/categories', {
+        method: 'POST',
+        body: JSON.stringify({ name }),
+      });
+      this.categorias = [...this.categorias, created.name].sort((first, second) =>
+        first.localeCompare(second, 'es'),
+      );
+      this.nuevoTicket.categoria = created.name;
+      this.cerrarFormularioCategoria();
+      this.mostrarMensaje(`Categoría “${created.name}” agregada.`);
+    } catch (error) {
+      this.mostrarMensaje(this.mensajeError(error, 'No se pudo agregar la categoría.'), 'error');
+    } finally {
+      this.guardandoCategoria = false;
+      this.changeDetector.markForCheck();
+    }
+  }
+
   abrirDetalle(ticket: Ticket): void {
     this.ticketSeleccionado = ticket;
     this.mostrarDetalle = true;
@@ -779,33 +852,63 @@ export class App implements OnInit, OnDestroy {
       return;
     this.ticketResolucion = ticket;
     this.notasResolucion = '';
+    this.nombreSolucion = '';
+    this.articuloResolucionId = '';
     this.mostrarResolucion = true;
+  }
+
+  articulosKBPublicados(): KnowledgeArticle[] {
+    return this.articulosKB.filter(
+      (article) => article.workflowState.toLocaleLowerCase() === 'published',
+    );
+  }
+
+  articuloResolucionSeleccionado(): KnowledgeArticle | null {
+    return this.articulosKBPublicados().find((article) => article.id === this.articuloResolucionId) ?? null;
   }
 
   async confirmarResolucion(): Promise<void> {
     const ticket = this.ticketResolucion;
     const notes = this.notasResolucion.trim();
-    if (!ticket || notes.length < 10) {
-      this.mostrarMensaje('Explica cómo se resolvió el ticket (mínimo 10 caracteres).', 'error');
+    const solutionName = this.nombreSolucion.trim();
+    const article = this.articuloResolucionSeleccionado();
+    if (
+      !ticket ||
+      (!article && (notes.length < 10 || solutionName.length < 3 || solutionName.length > 120)) ||
+      notes.length > 5000
+    ) {
+      this.mostrarMensaje(
+        'Escribe una solución de al menos 10 caracteres y un nombre o código de 3 a 120 caracteres, o selecciona una guía publicada.',
+        'error',
+      );
       return;
     }
     try {
       const updated = await this.api<ApiTicket>(`/tickets/${ticket.dbId}/resolve`, {
         method: 'POST',
-        body: JSON.stringify({ resolutionNotes: notes }),
+        body: JSON.stringify({
+          resolutionNotes: notes,
+          knowledgeArticleId: article?.id ?? null,
+          solutionName: article ? null : solutionName,
+        }),
       });
-      const saved = this.convertirTicket(updated);
-      const index = this.tickets.findIndex((item) => item.dbId === saved.dbId);
-      if (index >= 0) this.tickets[index] = saved;
+      const saved: Ticket = { ...this.convertirTicket(updated), estado: 'Resuelto' };
+      this.tickets = this.tickets.map((item) => item.dbId === saved.dbId ? saved : item);
+      this.paginaActual = 1;
       if (this.ticketSeleccionado?.dbId === saved.dbId) this.ticketSeleccionado = saved;
       await this.cargarArticulosKB();
       this.mostrarResolucion = false;
       this.ticketResolucion = null;
-      this.mostrarMensaje(
-        `Ticket ${saved.id} resuelto. La solución se guardó en la base de conocimiento para revisión.`,
+      this.articuloResolucionId = '';
+      this.nombreSolucion = '';
+      this.mostrarMensaje(article
+        ? `Ticket ${saved.id} resuelto. Se compartió la guía “${article.title}” con el usuario.`
+        : `Ticket ${saved.id} resuelto. La solución se guardó en la base de conocimiento para revisión.`,
       );
     } catch (error) {
       this.mostrarMensaje(this.mensajeError(error, 'No se pudo resolver el ticket.'), 'error');
+    } finally {
+      this.changeDetector.markForCheck();
     }
   }
 
@@ -1038,6 +1141,7 @@ export class App implements OnInit, OnDestroy {
     if (!this.esAdmin()) return;
     const action = approve ? 'approve' : 'reject';
     const comment = this.comentarioRechazo[article.id] ?? '';
+    this.revisandoArticuloKB[article.id] = true;
     try {
       await this.api(`/knowledge/articles/${article.id}/${action}`, {
         method: 'POST',
@@ -1051,6 +1155,8 @@ export class App implements OnInit, OnDestroy {
       );
     } catch (error) {
       this.mostrarMensaje(this.mensajeError(error, 'No se pudo revisar el artículo.'), 'error');
+    } finally {
+      this.revisandoArticuloKB[article.id] = false;
     }
   }
 

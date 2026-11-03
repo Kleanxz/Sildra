@@ -257,6 +257,17 @@
                   >
                     Ver
                   </button>
+                  @if (puedeResolver(ticket)) {
+                    <button
+                      type="button"
+                      (click)="resolveRequested.emit(ticket)"
+                      title="Marcar como completado"
+                      [attr.aria-label]="'Marcar ticket ' + ticket.id + ' como completado'"
+                      class="whitespace-nowrap rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100"
+                    >
+                      <span aria-hidden="true">✓</span> Marcar como completado
+                    </button>
+                  }
                   @if (esAdmin()) {
                     <button
                       type="button"
