@@ -25,6 +25,7 @@ import { AuthViewComponent } from '../../../features/authentication/components/a
 import { ResolvedTicketsComponent } from '../../../features/tickets/components/resolved-tickets/resolved-tickets.component';
 import { TicketDetailComponent } from '../../../features/tickets/components/ticket-detail/ticket-detail.component';
 import { TicketInboxComponent } from '../../../features/tickets/components/ticket-inbox/ticket-inbox.component';
+import { VoiceAssistantComponent } from '../../../features/telephony/components/voice-assistant/voice-assistant.component';
 import { ApiService } from '../../http/api.service';
 import { sectionRoutePaths } from '../../routing/app.routes';
 import {
@@ -77,6 +78,7 @@ import {
     AssignTicketsPageComponent,
     CreateTicketPageComponent,
     ResolveTicketsPageComponent,
+    VoiceAssistantComponent,
   ],
   templateUrl: './app-shell.component.html',
   styles: [`

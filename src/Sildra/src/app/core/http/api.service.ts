@@ -55,12 +55,16 @@ export class ApiService {
   }
 
   private createApiUrl(): string {
-    // Keep the page's loopback hostname so SameSite=Lax session cookies are sent.
-    const host = ['localhost', '127.0.0.1'].includes(window.location.hostname)
-      ? window.location.hostname
-      : '127.0.0.1';
     const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
-    const port = protocol === 'https:' ? 7186 : 5080;
-    return `${protocol}//${host}:${port}/api`;
+    const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+
+    if (isLocal) {
+      const port = protocol === 'https:' ? 7186 : 5080;
+      return `${protocol}//${window.location.hostname}:${port}/api`;
+    }
+
+    // Public deployments serve the API through the same host so session cookies
+    // stay first-party and the browser never calls its own loopback interface.
+    return `${window.location.origin}/api`;
   }
 }
