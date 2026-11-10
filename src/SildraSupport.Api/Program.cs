@@ -2,6 +2,7 @@ using DotNetEnv;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics;
 using Npgsql;
 using SildraSupport.Api;
@@ -18,6 +19,10 @@ if (envFile is not null)
 }
 
 var builder = WebApplication.CreateBuilder(args);
+var dataProtectionPath = Path.Combine(builder.Environment.ContentRootPath, ".data-protection-keys");
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionPath))
+    .SetApplicationName("SildraSupport");
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 var dbHost = Environment.GetEnvironmentVariable("DB_HOST");
 if (!string.IsNullOrWhiteSpace(dbHost))

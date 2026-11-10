@@ -1,0 +1,23 @@
+:host { display: block; min-width: 0; }
+.copilot { display: flex; flex-direction: column; min-height: 360px; max-height: 620px; color: #172033; background: #fff; border: 1px solid #dce3ed; border-radius: 12px; overflow: hidden; }
+.copilot__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 16px 18px; border-bottom: 1px solid #e7ebf1; }
+.copilot__header h2, .copilot__header p { margin: 0; }
+.copilot__header h2 { font-size: 1.1rem; font-weight: 700; }
+.copilot__header p:not(.copilot__eyebrow) { margin-top: 4px; color: #68758a; font-size: 0.8rem; }
+.copilot__eyebrow { margin-bottom: 5px !important; color: #a45b00; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.1em; }
+.copilot__status { flex: 0 0 auto; padding: 5px 8px; color: #526075; background: #f0f3f8; border-radius: 999px; font-size: 0.72rem; font-weight: 700; }
+.copilot__status--connected { color: #12633a; background: #e8f7ee; }
+.copilot__messages { display: flex; flex: 1; flex-direction: column; gap: 12px; min-height: 120px; padding: 16px; overflow-y: auto; }
+.copilot__empty, .copilot__loading { color: #68758a; font-size: 0.9rem; }
+.message { align-self: flex-start; max-width: 92%; padding: 10px 12px; overflow-wrap: anywhere; background: #f0f3f8; border-radius: 12px; }
+.message--agent { align-self: flex-end; color: #fff; background: #244b85; }
+.message__sender { font-size: 0.75rem; font-weight: 700; }
+.message p { margin: 4px 0 0; white-space: pre-wrap; }
+.copilot__error { margin: 0 14px 8px; padding: 10px; color: #a32121; background: #fff1f1; border-radius: 8px; font-size: 0.85rem; overflow-wrap: anywhere; }
+.copilot__controls { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 14px 4px; border-top: 1px solid #e7ebf1; }
+.copilot__controls button { min-height: 42px; padding: 9px 14px; cursor: pointer; border: 0; border-radius: 8px; font-weight: 700; }
+.copilot__primary { background: #ffb800; }
+.copilot__secondary { color: #172033; background: #edf1f6; }
+.copilot__controls button:disabled { cursor: not-allowed; opacity: 0.55; }
+.copilot__hint { margin: 4px 14px 12px; color: #68758a; font-size: 0.8rem; }
+@media (max-width: 640px) { .copilot { min-height: 300px; max-height: 65vh; } .copilot__controls { flex-direction: column; } .copilot__controls button { min-height: 44px; } }

@@ -12,5 +12,6 @@ internal static partial class ApiEndpoints
         MapUserEndpoints(app);
         MapTelephonyEndpoints(app);
         MapKnowledgeEndpoints(app);
+        MapLiveKitEndpoints(app);
     }
 }

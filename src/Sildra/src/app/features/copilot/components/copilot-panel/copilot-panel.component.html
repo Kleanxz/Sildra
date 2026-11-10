@@ -1,0 +1,58 @@
+<section class="copilot" aria-labelledby="copilot-panel-title">
+  <header class="copilot__header">
+    <div>
+      <p class="copilot__eyebrow">ASISTENTE DE VOZ</p>
+      <h2 id="copilot-panel-title">Agente LiveKit</h2>
+      <p>Conversa con el asistente de soporte en tiempo real.</p>
+    </div>
+    <span class="copilot__status" [class.copilot__status--connected]="callState === 'connected'">
+      @switch (callState) {
+        @case ('connecting') { Conectando… }
+        @case ('connected') { Conectado }
+        @case ('error') { Error }
+        @default { Desconectado }
+      }
+    </span>
+  </header>
+
+  <div class="copilot__messages" aria-live="polite" aria-relevant="additions">
+    @if (messages.length === 0) {
+      <p class="copilot__empty">
+        @if (callState === 'connected') {
+          El agente está conectado. Habla para comenzar; las transcripciones aparecerán aquí.
+        } @else {
+          Inicia una llamada para hablar con el agente de soporte.
+        }
+      </p>
+    }
+
+    @for (message of messages; track message.id) {
+      <article class="message" [class.message--agent]="message.sender === 'agent'">
+        <span class="message__sender">{{ message.sender === 'agent' ? 'Tú' : 'Agente LiveKit' }}</span>
+        <p>{{ message.text }}</p>
+      </article>
+    }
+
+    @if (callState === 'connecting') {
+      <p class="copilot__loading" role="status">Conectando con LiveKit…</p>
+    }
+  </div>
+
+  @if (errorMessage) {
+    <p class="copilot__error" role="alert">{{ errorMessage }}</p>
+  }
+
+  <div class="copilot__controls">
+    @if (callState !== 'connected') {
+      <button type="button" class="copilot__primary" (click)="connect()" [disabled]="callState === 'connecting'">
+        {{ callState === 'connecting' ? 'Conectando…' : 'Iniciar llamada' }}
+      </button>
+    } @else {
+      <button type="button" class="copilot__secondary" (click)="toggleMicrophone()">
+        {{ microphoneEnabled ? 'Silenciar micrófono' : 'Activar micrófono' }}
+      </button>
+      <button type="button" class="copilot__primary" (click)="disconnect()">Finalizar llamada</button>
+    }
+  </div>
+  <p class="copilot__hint">La llamada usa micrófono y audio del navegador.</p>
+</section>

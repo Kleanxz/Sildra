@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Estado, Prioridad, Ticket, TicketChatMessage } from '../../../../shared/models';
+import { CopilotPanelComponent } from '../../../copilot/components/copilot-panel/copilot-panel.component';
 import { TicketChatComponent } from '../ticket-chat/ticket-chat.component';
 import {
   claseSla,
@@ -13,8 +14,8 @@ import {
 @Component({
   selector: 'app-ticket-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, TicketChatComponent],
-  styles: [':host { display: block; }'],
+  imports: [CommonModule, FormsModule, TicketChatComponent, CopilotPanelComponent],
+  styles: [':host { display: block; } .chat-copilot-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.25rem; } @media (min-width: 1280px) { .chat-copilot-layout.copilot-open { grid-template-columns: minmax(0, 1fr) 360px; } }'],
   templateUrl: './ticket-detail.component.html',
 })
 export class TicketDetailComponent {
@@ -31,6 +32,9 @@ export class TicketDetailComponent {
   @Input() errorChat = '';
   @Input() nuevoMensajeChat = '';
 
+  copilotOpen = false;
+  copilotLoaded = false;
+
   @Output() nuevoMensajeChatChange = new EventEmitter<string>();
   @Output() backRequested = new EventEmitter<void>();
   @Output() saveRequested = new EventEmitter<void>();
@@ -40,23 +44,16 @@ export class TicketDetailComponent {
   @Output() chatRefreshRequested = new EventEmitter<void>();
   @Output() chatSendRequested = new EventEmitter<void>();
 
-  formatearFecha(fecha: string): string {
-    return formatearFecha(fecha);
+  toggleCopilot(): void {
+    this.copilotOpen = !this.copilotOpen;
+    if (this.copilotOpen) this.copilotLoaded = true;
   }
 
+  formatearFecha(fecha: string): string { return formatearFecha(fecha); }
   agenteVisible(ticket: Ticket): string {
     return !this.canHandle && ticket.agente === 'Sin asignar' ? 'Equipo de soporte' : ticket.agente;
   }
-
-  textoSla(ticket: Ticket): string {
-    return textoSla(ticket);
-  }
-
-  porcentajeSla(ticket: Ticket): number {
-    return porcentajeSla(ticket);
-  }
-
-  claseSla(ticket: Ticket): string {
-    return claseSla(ticket);
-  }
+  textoSla(ticket: Ticket): string { return textoSla(ticket); }
+  porcentajeSla(ticket: Ticket): number { return porcentajeSla(ticket); }
+  claseSla(ticket: Ticket): string { return claseSla(ticket); }
 }
