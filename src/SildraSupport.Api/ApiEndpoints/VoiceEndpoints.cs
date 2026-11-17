@@ -17,10 +17,12 @@ internal static partial class ApiEndpoints
         var livekitUrl = Environment.GetEnvironmentVariable("LIVEKIT_URL");
         var apiKey = Environment.GetEnvironmentVariable("LIVEKIT_API_KEY");
         var apiSecret = Environment.GetEnvironmentVariable("LIVEKIT_API_SECRET");
+        var agentName = Environment.GetEnvironmentVariable("LIVEKIT_AGENT_NAME");
 
         if (string.IsNullOrWhiteSpace(livekitUrl) ||
             string.IsNullOrWhiteSpace(apiKey) ||
-            string.IsNullOrWhiteSpace(apiSecret))
+            string.IsNullOrWhiteSpace(apiSecret) ||
+            string.IsNullOrWhiteSpace(agentName))
         {
             return Results.Problem(
                 title: "El asistente de voz no está configurado.",
@@ -47,7 +49,17 @@ internal static partial class ApiEndpoints
             })
             .WithRoomConfig(new RoomConfiguration
             {
-                Agents = { new RoomAgentDispatch { AgentName = "livekit-agent" } },
+                Agents =
+                {
+                    new RoomAgentDispatch
+                    {
+                        AgentName = agentName,
+                        Metadata = System.Text.Json.JsonSerializer.Serialize(new
+                        {
+                            tenant_id = GetTenantId(principal)?.ToString() ?? string.Empty
+                        })
+                    }
+                },
             })
             .WithTtl(TimeSpan.FromMinutes(15))
             .ToJwt();
@@ -55,3 +67,4 @@ internal static partial class ApiEndpoints
         return Results.Ok(new { serverUrl = livekitUrl, participantToken, roomName });
     }
 }
+

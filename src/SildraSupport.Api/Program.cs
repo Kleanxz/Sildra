@@ -44,7 +44,11 @@ builder.Services.AddHostedService<SlaBreachWorker>();
 builder.Services.AddCors(options => options.AddPolicy("SildraAngular", policy =>
     policy.WithOrigins(
             "http://127.0.0.1:4200", "http://localhost:4200",
-            "https://127.0.0.1:4200", "https://localhost:4200")
+            "http://127.0.0.1:4201", "http://localhost:4201",
+            "http://127.0.0.1:4202", "http://localhost:4202",
+            "https://127.0.0.1:4200", "https://localhost:4200",
+            "https://127.0.0.1:4201", "https://localhost:4201",
+            "https://127.0.0.1:4202", "https://localhost:4202")
         .AllowAnyHeader()
         .AllowAnyMethod()
         .AllowCredentials()));

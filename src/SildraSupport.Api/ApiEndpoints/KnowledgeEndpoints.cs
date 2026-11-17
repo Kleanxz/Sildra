@@ -14,6 +14,34 @@ internal static partial class ApiEndpoints
         knowledge.MapPost("", CreateKnowledgeArticleAsync);
         knowledge.MapPost("/{id:guid}/approve", ApproveKnowledgeArticleAsync);
         knowledge.MapPost("/{id:guid}/reject", RejectKnowledgeArticleAsync);
+
+        app.MapPost("/api/voice/knowledge/search", SearchVoiceKnowledgeAsync)
+            .WithTags("Voice assistant");
+    }
+
+    private static async Task<IResult> SearchVoiceKnowledgeAsync(SearchVoiceKnowledgeRequest request, PostgresSupportStore store, HttpContext http, CancellationToken cancellationToken)
+    {
+        var expectedKey = Environment.GetEnvironmentVariable("SILDRA_KB_TOOL_KEY");
+        var suppliedKey = http.Request.Headers["X-Sildra-KB-Key"].ToString();
+        if (string.IsNullOrWhiteSpace(expectedKey))
+            return Results.Problem(title: "La búsqueda de conocimiento del agente no está configurada.", statusCode: StatusCodes.Status503ServiceUnavailable);
+        if (string.IsNullOrWhiteSpace(suppliedKey) || !FixedTimeTextEquals(suppliedKey, expectedKey))
+            return Results.Unauthorized();
+
+        var query = request.Query?.Trim() ?? string.Empty;
+        if (query.Length is < 3 or > 500)
+            return Results.BadRequest(new { message = "La consulta debe tener entre 3 y 500 caracteres." });
+
+        Guid? tenantId = null;
+        var tenantHeader = http.Request.Headers["X-Sildra-Tenant-Id"].ToString();
+        if (!string.IsNullOrWhiteSpace(tenantHeader))
+        {
+            if (!Guid.TryParse(tenantHeader, out var parsedTenantId)) return Results.BadRequest(new { message = "El tenant de la consulta no es válido." });
+            tenantId = parsedTenantId;
+        }
+
+        var articles = await store.SearchPublishedKnowledgeAsync(query, tenantId, cancellationToken);
+        return Results.Ok(new { found = articles.Count > 0, articles });
     }
 
     private static async Task<IResult> GetKnowledgeArticlesAsync(PostgresSupportStore store, HttpContext http, CancellationToken cancellationToken)
@@ -50,3 +78,5 @@ internal static partial class ApiEndpoints
         return changed ? Results.Ok(new { message = approve ? "Artículo aprobado y publicado." : "Artículo rechazado." }) : Results.NotFound(new { message = "No se encontró un artículo pendiente de revisión." });
     }
 }
+
+internal sealed record SearchVoiceKnowledgeRequest(string? Query);

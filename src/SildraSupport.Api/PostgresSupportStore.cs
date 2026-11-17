@@ -1014,6 +1014,55 @@ internal sealed class PostgresSupportStore(NpgsqlDataSource dataSource)
         return articles;
     }
 
+    public async Task<IReadOnlyList<object>> SearchPublishedKnowledgeAsync(string queryText, Guid? tenantId, CancellationToken cancellationToken = default)
+    {
+        const string sql = """
+            WITH search_query AS (
+                SELECT websearch_to_tsquery('spanish', @query) AS terms
+            ), ranked_articles AS (
+                SELECT a.id, a.language, a.product_code, a.module_code, v.content_md,
+                       ts_rank_cd(
+                           to_tsvector('spanish', concat_ws(' ', a.product_code, a.module_code, v.content_md)),
+                           search_query.terms
+                       ) AS rank
+                FROM knowledge_article a
+                JOIN knowledge_version v ON v.id = a.current_version_id
+                CROSS JOIN search_query
+                WHERE lower(a.workflow_state) = 'published'
+                  AND lower(v.sanitization_state) IN ('clean', 'sanitized')
+                  AND (a.owner_scope = 'global' OR a.tenant_id = @tenant_id)
+                  AND to_tsvector('spanish', concat_ws(' ', a.product_code, a.module_code, v.content_md)) @@ search_query.terms
+            )
+            SELECT id, language, product_code, module_code, content_md
+            FROM ranked_articles
+            ORDER BY rank DESC, id
+            LIMIT 3;
+            """;
+        await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
+        await using var command = new NpgsqlCommand(sql, connection);
+        Add(command, "query", NpgsqlDbType.Text, queryText);
+        AddNullable(command, "tenant_id", NpgsqlDbType.Uuid, tenantId);
+
+        var results = new List<object>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            var content = reader.GetString(4);
+            var title = content.Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                .FirstOrDefault()?.Trim().TrimStart('#').Trim() ?? "Artículo de soporte";
+            results.Add(new
+            {
+                articleId = reader.GetGuid(0),
+                title,
+                language = reader.GetString(1),
+                productCode = reader.IsDBNull(2) ? "" : reader.GetString(2),
+                moduleCode = reader.IsDBNull(3) ? "" : reader.GetString(3),
+                content = content.Length > 4000 ? content[..4000] : content
+            });
+        }
+        return results;
+    }
+
     public async Task<Guid> CreateKnowledgeArticleAsync(Guid actorId, Guid? tenantId, string title, string content, string productCode, string moduleCode, string language, string audience, CancellationToken cancellationToken = default)
     {
         if (tenantId is null)
