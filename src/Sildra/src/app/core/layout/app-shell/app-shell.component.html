@@ -1,13 +1,18 @@
+<div class="app-theme" [class.app-theme--dark]="modoOscuro">
 <router-outlet></router-outlet>
 @if (!usuarioActual) {
   <app-auth-view
     [cargandoSesion]="cargandoSesion"
     [modoRegistro]="modoRegistro"
+    [autenticando]="autenticando"
+    [animandoSalida]="animandoSalidaAcceso"
+    [modoOscuro]="modoOscuro"
     [errorAcceso]="errorAcceso"
     [organizaciones]="organizaciones"
     [authForm]="authForm"
     (submitRequested)="ingresar()"
     (modeToggleRequested)="cambiarModoAcceso()"
+    (themeToggleRequested)="alternarModoOscuro()"
   />
 }
 @if (usuarioActual) {
@@ -34,7 +39,9 @@
           [isAdmin]="esAdmin()"
           [isAgent]="esAgente()"
           [profileName]="perfil.nombre"
+          [modoOscuro]="modoOscuro"
           (commandsRequested)="mostrarPaletaComandos = true; busquedaComandos = ''"
+          (themeToggleRequested)="alternarModoOscuro()"
           (logoutRequested)="cerrarSesion()"
         />
         <div class="mx-auto w-full max-w-[1600px] flex-1 p-8 max-lg:p-5 max-sm:p-3">
@@ -423,3 +430,4 @@
     }
   </div>
 }
+</div>

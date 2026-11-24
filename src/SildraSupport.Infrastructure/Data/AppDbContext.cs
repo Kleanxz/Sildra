@@ -23,7 +23,7 @@ public class AppDbContext : DbContext
             entity.Property(e => e.TicketNumber).IsRequired().HasMaxLength(20);
             entity.HasIndex(e => e.TicketNumber).IsUnique();
             entity.Property(e => e.Channel).IsRequired().HasMaxLength(30).HasDefaultValue("Portal");
-            
+
             entity.HasOne(e => e.Organization)
                   .WithMany()
                   .HasForeignKey(e => e.OrganizationId)
@@ -40,7 +40,7 @@ public class AppDbContext : DbContext
                   .OnDelete(DeleteBehavior.SetNull);
         });
 
-        // Configuración de KnowledgeBaseArticle    
+        // Configuracion de KnowledgeBaseArticle
         modelBuilder.Entity<KnowledgeBaseArticle>(entity =>
         {
             entity.HasKey(e => e.Id);
@@ -49,3 +49,4 @@ public class AppDbContext : DbContext
         });
     }
 }
+//fin del articulo onichan UwU

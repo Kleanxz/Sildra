@@ -83,17 +83,22 @@ import {
   templateUrl: './app-shell.component.html',
   styles: [`
     @keyframes session-shell-enter {
-      from { opacity: 0; transform: translateY(10px) scale(.995); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
+      from { opacity: 0; filter: blur(2px); transform: translateY(18px) scale(.985); }
+      to { opacity: 1; filter: blur(0); transform: translateY(0) scale(1); }
     }
     @keyframes session-shell-exit {
       from { opacity: 1; transform: translateY(0) scale(1); }
       to { opacity: 0; transform: translateY(-8px) scale(.995); }
     }
-    .session-shell { animation: session-shell-enter 280ms cubic-bezier(.2,.7,.2,1) both; }
+    @keyframes session-content-enter {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .session-shell { animation: session-shell-enter 420ms cubic-bezier(.2,.7,.2,1) both; }
     .session-shell-exit { animation: session-shell-exit 220ms ease-in both; pointer-events: none; }
+    .session-shell main > div { animation: session-content-enter 360ms 100ms cubic-bezier(.2,.7,.2,1) both; }
     @media (prefers-reduced-motion: reduce) {
-      .session-shell, .session-shell-exit { animation-duration: 1ms; }
+      .session-shell, .session-shell-exit, .session-shell main > div { animation-duration: 1ms; animation-delay: 0ms; }
     }
   `],
 })
@@ -167,6 +172,9 @@ export class AppShellComponent implements OnInit, OnDestroy {
   cerrandoSesion = false;
   cargandoSesion = true;
   modoRegistro = false;
+  autenticando = false;
+  animandoSalidaAcceso = false;
+  modoOscuro = false;
   errorAcceso = '';
   authForm = { nombre: '', email: '', password: '', organizacionId: '' };
   private relojActual = Date.now();
@@ -217,6 +225,12 @@ export class AppShellComponent implements OnInit, OnDestroy {
   tipoMensaje: 'success' | 'error' | 'warning' = 'success';
 
   async ngOnInit(): Promise<void> {
+    try {
+      this.modoOscuro = window.localStorage.getItem('sildraSupport.theme') === 'dark';
+    } catch {
+      this.modoOscuro = false;
+    }
+
     this.routeSubscription.add(
       this.router.events
         .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
@@ -261,6 +275,16 @@ export class AppShellComponent implements OnInit, OnDestroy {
     this.routeSubscription.unsubscribe();
   }
 
+  alternarModoOscuro(): void {
+    this.modoOscuro = !this.modoOscuro;
+    try {
+      window.localStorage.setItem('sildraSupport.theme', this.modoOscuro ? 'dark' : 'light');
+    } catch {
+      // La preferencia visual también se aplica aunque el navegador no permita guardarla.
+    }
+    this.changeDetector.markForCheck();
+  }
+
   private async api<T>(
     path: string,
     options: { method?: string; body?: unknown } = {},
@@ -281,7 +305,10 @@ export class AppShellComponent implements OnInit, OnDestroy {
   }
 
   async ingresar(): Promise<void> {
+    if (this.autenticando) return;
     this.errorAcceso = '';
+    this.autenticando = true;
+    this.changeDetector.markForCheck();
     const esRegistro = this.modoRegistro;
     try {
       const endpoint = esRegistro ? '/auth/register' : '/auth/login';
@@ -297,7 +324,13 @@ export class AppShellComponent implements OnInit, OnDestroy {
         method: 'POST',
         body: JSON.stringify(body),
       });
+      this.animandoSalidaAcceso = true;
+      this.changeDetector.markForCheck();
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        await new Promise<void>((resolve) => window.setTimeout(resolve, 1860));
+      }
       await this.iniciarSesionEnInterfaz(user);
+      await this.router.navigateByUrl(sectionRoutePaths['Bandeja de tickets']);
       this.authForm.password = '';
       if (esRegistro) {
         this.mostrarMensaje(
@@ -312,6 +345,10 @@ export class AppShellComponent implements OnInit, OnDestroy {
         this.estadoError(error) === 401
           ? 'El correo o la contraseña no son correctos.'
           : this.mensajeError(error, 'No fue posible iniciar sesión.');
+    } finally {
+      this.autenticando = false;
+      this.animandoSalidaAcceso = false;
+      this.changeDetector.markForCheck();
     }
   }
 

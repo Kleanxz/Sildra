@@ -1,5 +1,6 @@
 using DotNetEnv;
 using System.Security.Claims;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Diagnostics;
@@ -18,6 +19,13 @@ if (envFile is not null)
 }
 
 var builder = WebApplication.CreateBuilder(args);
+if (builder.Environment.IsDevelopment())
+{
+    var keyDirectory = Path.Combine(Path.GetTempPath(), "SildraSupport", "DataProtectionKeys");
+    builder.Services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(keyDirectory));
+}
+
+
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 var dbHost = Environment.GetEnvironmentVariable("DB_HOST");
 if (!string.IsNullOrWhiteSpace(dbHost))

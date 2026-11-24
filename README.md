@@ -18,7 +18,7 @@ La API espera que el esquema Sildra ya esté instalado; el inicio no crea todas 
 
 ```powershell
 cd src/SildraSupport.Api
-dotnet run --urls http://127.0.0.1:5080
+dotnet run --urls http://127.0.0.1:5082
 ```
 
 ## Iniciar Angular
@@ -29,4 +29,4 @@ npm ci
 npm start -- --host 127.0.0.1
 ```
 
-Abre `http://127.0.0.1:4200` y comprueba el estado de la API en `http://127.0.0.1:5080/api/health`.
+Abre `http://127.0.0.1:4200` y comprueba el estado de la API en `http://127.0.0.1:5082/api/health`.

@@ -12,9 +12,11 @@ export class AppHeaderComponent {
   @Input() isAdmin = false;
   @Input() isAgent = false;
   @Input() profileName = '';
+  @Input() modoOscuro = false;
 
   @Output() commandsRequested = new EventEmitter<void>();
   @Output() logoutRequested = new EventEmitter<void>();
+  @Output() themeToggleRequested = new EventEmitter<void>();
 
   get iniciales(): string {
     return this.profileName

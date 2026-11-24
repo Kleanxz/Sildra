@@ -8,6 +8,30 @@ internal sealed class RegistrationEmailSender(ILogger<RegistrationEmailSender> l
 {
     public async Task<bool> SendWelcomeAsync(string recipient, string name)
     {
+        var body = $"Hola {name},\n\nTu cuenta de Sildra Support se registró correctamente con el correo {recipient}. Ya puedes ingresar para consultar y gestionar tus reportes.\n\nSi no creaste esta cuenta, puedes ignorar este mensaje.\n\nSildra Support";
+        return await SendAsync(recipient, "Tu cuenta de Sildra Support está lista", body);
+    }
+
+    public async Task SendToCollaboratorsAsync(IReadOnlyList<string> collaboratorEmails, string subject, string body)
+    {
+        var recipients = collaboratorEmails
+            .Where(email => !string.IsNullOrWhiteSpace(email))
+            .Select(email => email.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        if (recipients.Length == 0)
+        {
+            logger.LogWarning("No se encontraron agentes para notificar sobre el ticket.");
+            return;
+        }
+
+        foreach (var recipient in recipients)
+            await SendAsync(recipient, subject, body);
+    }
+
+    private async Task<bool> SendAsync(string recipient, string subject, string body)
+    {
         var host = Environment.GetEnvironmentVariable("SMTP_HOST")?.Trim();
         var from = Environment.GetEnvironmentVariable("SMTP_FROM")?.Trim();
         var username = Environment.GetEnvironmentVariable("SMTP_USER")?.Trim();
@@ -17,7 +41,7 @@ internal sealed class RegistrationEmailSender(ILogger<RegistrationEmailSender> l
 
         if (string.IsNullOrWhiteSpace(host) || string.IsNullOrWhiteSpace(from))
         {
-            logger.LogWarning("No se envió el aviso de registro: configura SMTP_HOST y SMTP_FROM.");
+            logger.LogWarning("No se envió el correo: configura SMTP_HOST y SMTP_FROM.");
             return false;
         }
 
@@ -26,11 +50,11 @@ internal sealed class RegistrationEmailSender(ILogger<RegistrationEmailSender> l
             using var message = new MailMessage
             {
                 From = new MailAddress(from, "Sildra Support", Encoding.UTF8),
-                Subject = "Tu cuenta de Sildra Support está lista",
+                Subject = subject,
                 SubjectEncoding = Encoding.UTF8,
                 BodyEncoding = Encoding.UTF8,
                 IsBodyHtml = false,
-                Body = $"Hola {name},\n\nTu cuenta de Sildra Support se registró correctamente con el correo {recipient}. Ya puedes ingresar para consultar y gestionar tus reportes.\n\nSi no creaste esta cuenta, puedes ignorar este mensaje.\n\nSildra Support"
+                Body = body
             };
             message.To.Add(new MailAddress(recipient));
 
@@ -48,7 +72,7 @@ internal sealed class RegistrationEmailSender(ILogger<RegistrationEmailSender> l
         }
         catch (Exception exception) when (exception is SmtpException or InvalidOperationException or FormatException)
         {
-            logger.LogWarning("No se pudo enviar el aviso de registro a {Email} ({ExceptionType}).", recipient, exception.GetType().Name);
+            logger.LogWarning("No se pudo enviar el correo a {Email} ({ExceptionType}).", recipient, exception.GetType().Name);
             return false;
         }
     }

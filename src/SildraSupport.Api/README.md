@@ -18,7 +18,7 @@ La API consulta el esquema PostgreSQL de Sildra (`tenant`, `branch`, `ticket`, `
 6. Inicia la API desde esta carpeta:
 
    ```powershell
-   dotnet run --urls http://127.0.0.1:5080
+   dotnet run --urls http://127.0.0.1:5082
    ```
 
 7. Inicia Angular desde `src\Sildra`:
@@ -36,3 +36,6 @@ La API consulta el esquema PostgreSQL de Sildra (`tenant`, `branch`, `ticket`, `
 - `/api/health` solo devuelve estado conectado cuando PostgreSQL responde y están presentes las tablas que usa la aplicación.
 
 La API asume que el esquema DBML descrito por el proyecto ya fue aplicado a PostgreSQL. La columna `tenant.organization_id` se usa como referencia externa y la administración de tenants de Keycloak no está integrada en esta aplicación.
+
+## Avisos por correo a colaboradores
+El backend envía un correo a los agentes del mismo tenant cuando se crea un ticket o se publica un mensaje en el chat. Cuando un administrador asigna o cambia el agente responsable, envía un aviso solo al agente asignado. Configura también `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` y `SMTP_USE_SSL` en `.env`. Sin `SMTP_HOST` o `SMTP_FROM`, los tickets y mensajes se guardan normalmente, pero no se envían correos.

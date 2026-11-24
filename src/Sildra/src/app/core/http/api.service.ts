@@ -59,7 +59,7 @@ export class ApiService {
     const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 
     if (isLocal) {
-      const port = protocol === 'https:' ? 7186 : 5080;
+      const port = protocol === 'https:' ? 7186 : 5082;
       return `${protocol}//${window.location.hostname}:${port}/api`;
     }
 

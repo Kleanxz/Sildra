@@ -1,0 +1,697 @@
+.assistant-panel {
+  transform-origin: bottom right;
+  animation: assistant-panel-in 360ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
+}
+
+.assistant-launcher {
+  position: relative;
+  isolation: isolate;
+  animation: assistant-float 4.2s ease-in-out infinite;
+  transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+}
+
+.assistant-launcher::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 0 0 rgb(245 158 11 / 0.34);
+  content: '';
+  pointer-events: none;
+}
+
+.assistant-launcher--attention::before {
+  animation: assistant-launcher-pulse 2.8s ease-out infinite;
+}
+
+.assistant-launcher--active { animation: none; }
+.assistant-launcher:hover { transform: translateY(-2px); box-shadow: 0 14px 28px rgb(15 23 42 / 0.2); }
+.assistant-launcher:active { transform: scale(0.97); }
+
+.assistant-status__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-top: 0.38rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #94a3b8;
+  transition: background-color 180ms ease, box-shadow 180ms ease;
+}
+
+.assistant-status--connecting .assistant-status__dot,
+.assistant-status--disconnecting .assistant-status__dot {
+  background: #f59e0b;
+  box-shadow: 0 0 0 4px rgb(245 158 11 / 0.14);
+  animation: assistant-status-pulse 1.3s ease-in-out infinite;
+}
+
+.assistant-status--connected .assistant-status__dot {
+  background: #10b981;
+  box-shadow: 0 0 0 4px rgb(16 185 129 / 0.14);
+  animation: assistant-status-pulse 2s ease-in-out infinite;
+}
+
+.assistant-voice-visual {
+  position: relative;
+  display: grid;
+  width: 6.75rem;
+  height: 6.75rem;
+  margin: 0.75rem auto 0;
+  place-items: center;
+  isolation: isolate;
+}
+
+.assistant-voice-visual__ring {
+  position: absolute;
+  width: 4.5rem;
+  height: 4.5rem;
+  border: 1px solid rgb(245 158 11 / 0.4);
+  border-radius: 50%;
+  opacity: 0;
+  transform: scale(0.72);
+}
+
+.assistant-voice-visual--connecting .assistant-voice-visual__ring { animation: assistant-ring 1.8s ease-out infinite; }
+.assistant-voice-visual--connected .assistant-voice-visual__ring { border-color: rgb(16 185 129 / 0.42); animation: assistant-ring 2.6s ease-out infinite; }
+.assistant-voice-visual__ring--delayed { animation-delay: 0.9s !important; }
+.assistant-voice-visual--connected .assistant-voice-visual__ring--delayed { animation-delay: 1.3s !important; }
+
+.assistant-voice-visual__orb {
+  z-index: 1;
+  display: grid;
+  width: 3.75rem;
+  height: 3.75rem;
+  color: #78350f;
+  background: linear-gradient(145deg, #fef3c7 4%, #fbbf24 58%, #f59e0b 100%);
+  border: 1px solid rgb(255 255 255 / 0.85);
+  border-radius: 50%;
+  box-shadow: 0 10px 24px rgb(245 158 11 / 0.23), inset 0 1px 2px rgb(255 255 255 / 0.8);
+  place-items: center;
+  transition: background 240ms ease, box-shadow 240ms ease, color 240ms ease;
+}
+
+.assistant-voice-visual__orb svg { width: 1.5rem; height: 1.5rem; }
+.assistant-voice-visual--connecting .assistant-voice-visual__orb { animation: assistant-orb-breathe 1.4s ease-in-out infinite; }
+.assistant-voice-visual--connected .assistant-voice-visual__orb {
+  color: #065f46;
+  background: linear-gradient(145deg, #d1fae5 4%, #6ee7b7 60%, #34d399 100%);
+  box-shadow: 0 10px 26px rgb(16 185 129 / 0.22), inset 0 1px 2px rgb(255 255 255 / 0.85);
+  animation: assistant-orb-breathe 2.8s ease-in-out infinite;
+}
+
+.assistant-message { animation: assistant-message-in 240ms cubic-bezier(0.2, 0.75, 0.25, 1) both; }
+.assistant-typing { display: flex; min-width: 3.25rem; align-items: center; justify-content: center; gap: 0.28rem; }
+.assistant-typing__dot { width: 0.34rem; height: 0.34rem; border-radius: 50%; background: #94a3b8; animation: assistant-typing-bounce 900ms ease-in-out infinite; }
+.assistant-typing__dot:nth-child(2) { animation-delay: 120ms; }
+.assistant-typing__dot:nth-child(3) { animation-delay: 240ms; }
+.assistant-error { animation: assistant-message-in 220ms ease-out both; }
+
+.assistant-panel button:not(:disabled) { transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease; }
+.assistant-panel button:not(:disabled):hover { transform: translateY(-1px); }
+.assistant-panel button:not(:disabled):active { transform: scale(0.985); }
+
+@keyframes assistant-panel-in {
+  from { opacity: 0; transform: translateY(0.8rem) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes assistant-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+@keyframes assistant-launcher-pulse {
+  0% { box-shadow: 0 0 0 0 rgb(245 158 11 / 0.34); }
+  75%, 100% { box-shadow: 0 0 0 12px rgb(245 158 11 / 0); }
+}
+@keyframes assistant-status-pulse {
+  50% { box-shadow: 0 0 0 6px rgb(16 185 129 / 0.04); }
+}
+@keyframes assistant-ring {
+  0% { opacity: 0.7; transform: scale(0.72); }
+  100% { opacity: 0; transform: scale(1.48); }
+}
+@keyframes assistant-orb-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.045); }
+}
+@keyframes assistant-message-in {
+  from { opacity: 0; transform: translateY(5px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes assistant-typing-bounce {
+  0%, 60%, 100% { opacity: 0.55; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .assistant-panel,
+  .assistant-launcher,
+  .assistant-launcher::before,
+  .assistant-status__dot,
+  .assistant-voice-visual__ring,
+  .assistant-voice-visual__orb,
+  .assistant-message,
+  .assistant-typing__dot,
+  .assistant-error {
+    animation: none !important;
+  }
+
+  .assistant-launcher,
+  .assistant-panel button,
+  .assistant-status__dot,
+  .assistant-voice-visual__orb {
+    transition: none !important;
+  }
+}
+
+.assistant-widget--hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.assistant-immersive {
+  position: fixed;
+  z-index: 80;
+  inset: 0;
+  display: grid;
+  overflow: hidden;
+  color: #fff;
+  background: transparent;
+  place-items: center;
+  isolation: isolate;
+}
+
+.assistant-immersive__backdrop {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: rgb(2 6 23 / 0.94);
+  opacity: 0;
+  backdrop-filter: blur(12px);
+  animation: assistant-immersive-dim 360ms ease-out 540ms both;
+}
+
+.assistant-immersive__scene {
+  display: flex;
+  width: min(100% - 2rem, 32rem);
+  min-height: 24rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem 8rem;
+  text-align: center;
+}
+
+.assistant-immersive__phone {
+  position: relative;
+  display: grid;
+  width: 7rem;
+  height: 7rem;
+  flex: 0 0 auto;
+  place-items: center;
+  transform-origin: center;
+  animation: assistant-phone-arrive 780ms cubic-bezier(0.18, 0.76, 0.24, 1) both;
+}
+
+.assistant-immersive__phone-icon {
+  z-index: 1;
+  display: grid;
+  width: 5.25rem;
+  height: 5.25rem;
+  color: #78350f;
+  background: linear-gradient(145deg, #fef3c7 4%, #fbbf24 58%, #f59e0b 100%);
+  border: 1px solid rgb(255 255 255 / 0.8);
+  border-radius: 50%;
+  box-shadow: 0 14px 42px rgb(245 158 11 / 0.25), inset 0 1px 3px rgb(255 255 255 / 0.8);
+  place-items: center;
+  transition: color 350ms ease, background 350ms ease, box-shadow 350ms ease;
+}
+
+.assistant-immersive__phone-icon svg { width: 2rem; height: 2rem; }
+
+.assistant-immersive__phone--connected .assistant-immersive__phone-icon {
+  color: #065f46;
+  background: linear-gradient(145deg, #d1fae5 4%, #6ee7b7 60%, #34d399 100%);
+  box-shadow: 0 14px 46px rgb(16 185 129 / 0.28), inset 0 1px 3px rgb(255 255 255 / 0.8);
+  animation: assistant-call-breathe 2.6s ease-in-out infinite;
+}
+
+.assistant-immersive__ring {
+  position: absolute;
+  width: 5rem;
+  height: 5rem;
+  border: 1px solid rgb(52 211 153 / 0.55);
+  border-radius: 50%;
+  opacity: 0;
+}
+
+.assistant-immersive__phone--connected .assistant-immersive__ring {
+  animation: assistant-call-ring 2.6s ease-out infinite;
+}
+
+.assistant-immersive__ring--delayed { animation-delay: 1.3s !important; }
+.assistant-immersive__phone--disconnecting .assistant-immersive__phone-icon { animation: none; }
+
+.assistant-immersive__copy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  opacity: 0;
+  animation: assistant-immersive-copy 420ms ease-out 700ms both;
+}
+
+.assistant-immersive__wave {
+  display: flex;
+  height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.32rem;
+  margin-top: 1.5rem;
+  opacity: 0;
+  animation: assistant-immersive-copy 350ms ease-out 900ms both;
+}
+
+.assistant-immersive__wave span {
+  width: 0.24rem;
+  height: 0.65rem;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fde68a, #34d399);
+  animation: assistant-wave 950ms ease-in-out infinite;
+}
+
+.assistant-immersive__wave span:nth-child(3n + 1) { animation-delay: 120ms; }
+.assistant-immersive__wave span:nth-child(3n + 2) { animation-delay: 280ms; }
+.assistant-immersive__wave span:nth-child(4n) { animation-delay: 400ms; }
+
+.assistant-immersive__loading {
+  display: flex;
+  gap: 0.45rem;
+  margin-top: 1.5rem;
+  opacity: 0;
+  animation: assistant-immersive-copy 350ms ease-out 850ms both;
+}
+
+.assistant-immersive__loading span {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: #fbbf24;
+  animation: assistant-immersive-loading 900ms ease-in-out infinite;
+}
+
+.assistant-immersive__loading span:nth-child(2) { animation-delay: 140ms; }
+.assistant-immersive__loading span:nth-child(3) { animation-delay: 280ms; }
+
+.assistant-immersive__controls {
+  position: absolute;
+  right: 1rem;
+  bottom: max(2.5rem, env(safe-area-inset-bottom));
+  left: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+  animation: assistant-immersive-copy 350ms ease-out 780ms both;
+}
+
+.assistant-immersive__hangup {
+  display: grid;
+  width: 3.75rem;
+  height: 3.75rem;
+  color: #fff;
+  background: #e11d48;
+  border: 1px solid rgb(255 255 255 / 0.16);
+  border-radius: 50%;
+  box-shadow: 0 8px 28px rgb(225 29 72 / 0.32);
+  place-items: center;
+  transition: transform 160ms ease, background-color 160ms ease;
+}
+
+.assistant-immersive__hangup svg { width: 1.55rem; height: 1.55rem; transform: rotate(135deg); }
+.assistant-immersive__hangup:not(:disabled):hover { background: #be123c; transform: scale(1.06); }
+.assistant-immersive__hangup:not(:disabled):active { transform: scale(0.96); }
+.assistant-immersive__hangup:disabled { cursor: wait; opacity: 0.6; }
+
+.assistant-immersive__cancel {
+  padding: 0.7rem 1.2rem;
+  color: #cbd5e1;
+  border: 1px solid rgb(148 163 184 / 0.32);
+  border-radius: 999px;
+  background: rgb(15 23 42 / 0.38);
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.assistant-immersive__cancel:hover { color: #fff; background: rgb(51 65 85 / 0.62); }
+
+.assistant-immersive__scene--chat {
+  width: min(100%, 46rem);
+  height: 100dvh;
+  min-height: 0;
+  justify-content: flex-start;
+  padding: clamp(3rem, 8vh, 6rem) 1rem 11rem;
+}
+
+.assistant-immersive__chat-icon {
+  position: relative;
+  display: grid;
+  width: 6.25rem;
+  height: 6.25rem;
+  flex: 0 0 auto;
+  place-items: center;
+  transform-origin: center;
+  animation: assistant-chat-arrive 720ms cubic-bezier(0.2, 0.78, 0.24, 1) both;
+}
+
+.assistant-immersive__chat-bubble {
+  z-index: 1;
+  display: grid;
+  width: 4.75rem;
+  height: 4.75rem;
+  color: #312e81;
+  background: linear-gradient(145deg, #e0e7ff 5%, #a5b4fc 58%, #818cf8 100%);
+  border: 1px solid rgb(255 255 255 / 0.8);
+  border-radius: 1.7rem 1.7rem 1.7rem 0.55rem;
+  box-shadow: 0 14px 42px rgb(99 102 241 / 0.28), inset 0 1px 3px rgb(255 255 255 / 0.8);
+  place-items: center;
+  transition: color 300ms ease, background 300ms ease, box-shadow 300ms ease;
+}
+
+.assistant-immersive__chat-bubble svg { width: 2rem; height: 2rem; }
+
+.assistant-immersive__chat-icon--connected .assistant-immersive__chat-bubble {
+  color: #155e75;
+  background: linear-gradient(145deg, #cffafe 5%, #67e8f9 58%, #22d3ee 100%);
+  box-shadow: 0 14px 44px rgb(34 211 238 / 0.25), inset 0 1px 3px rgb(255 255 255 / 0.82);
+  animation: assistant-chat-breathe 3s ease-in-out infinite;
+}
+
+.assistant-immersive__chat-ring {
+  position: absolute;
+  width: 4.7rem;
+  height: 4.7rem;
+  border: 1px solid rgb(129 140 248 / 0.5);
+  border-radius: 1.8rem 1.8rem 1.8rem 0.65rem;
+  opacity: 0;
+  transform: rotate(-6deg) scale(0.8);
+}
+
+.assistant-immersive__chat-icon--connected .assistant-immersive__chat-ring {
+  border-color: rgb(34 211 238 / 0.45);
+  animation: assistant-chat-halo 3s ease-out infinite;
+}
+
+.assistant-immersive__chat {
+  display: flex;
+  width: 100%;
+  max-height: min(43dvh, 27rem);
+  min-height: 8rem;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.8rem;
+  overflow-y: auto;
+  margin-top: 1.5rem;
+  padding: 0.75rem 0.5rem 1rem;
+  scrollbar-color: rgb(148 163 184 / 0.45) transparent;
+  scrollbar-width: thin;
+}
+
+.assistant-immersive__welcome {
+  align-self: center;
+  padding: 0.8rem 1rem;
+  color: #cbd5e1;
+  border: 1px solid rgb(148 163 184 / 0.14);
+  border-radius: 1rem;
+  background: rgb(30 41 59 / 0.55);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.assistant-immersive__message {
+  max-width: min(86%, 36rem);
+  padding: 0.8rem 1rem;
+  color: #e2e8f0;
+  border: 1px solid rgb(148 163 184 / 0.14);
+  border-radius: 1.2rem 1.2rem 1.2rem 0.35rem;
+  background: rgb(30 41 59 / 0.78);
+  font-size: 0.925rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+  animation: assistant-message-in 240ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
+}
+
+.assistant-immersive__message--user {
+  align-self: flex-end;
+  color: #fff;
+  border-color: rgb(129 140 248 / 0.38);
+  border-radius: 1.2rem 1.2rem 0.35rem 1.2rem;
+  background: linear-gradient(135deg, rgb(79 70 229 / 0.92), rgb(67 56 202 / 0.86));
+}
+
+.assistant-immersive__typing {
+  display: flex;
+  gap: 0.3rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgb(148 163 184 / 0.14);
+  border-radius: 1.2rem 1.2rem 1.2rem 0.35rem;
+  background: rgb(30 41 59 / 0.78);
+}
+
+.assistant-immersive__typing span {
+  width: 0.35rem;
+  height: 0.35rem;
+  border-radius: 50%;
+  background: #a5b4fc;
+  animation: assistant-typing-bounce 900ms ease-in-out infinite;
+}
+
+.assistant-immersive__typing span:nth-child(2) { animation-delay: 120ms; }
+.assistant-immersive__typing span:nth-child(3) { animation-delay: 240ms; }
+.assistant-immersive__error { color: #fecaca; font-size: 0.8rem; }
+.assistant-immersive__controls--chat { gap: 0.75rem; }
+
+.assistant-immersive__composer {
+  display: flex;
+  width: min(100%, 42rem);
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.5rem;
+  border: 1px solid rgb(148 163 184 / 0.28);
+  border-radius: 1.2rem;
+  background: rgb(15 23 42 / 0.92);
+  box-shadow: 0 18px 50px rgb(0 0 0 / 0.24);
+  backdrop-filter: blur(16px);
+}
+
+.assistant-immersive__composer input {
+  width: 100%;
+  min-width: 0;
+  padding: 0.75rem 0.9rem;
+  color: #f8fafc;
+  outline: none;
+  background: transparent;
+  font-size: 0.925rem;
+}
+
+.assistant-immersive__composer input::placeholder { color: #94a3b8; }
+.assistant-immersive__composer input:focus-visible { box-shadow: 0 0 0 2px rgb(129 140 248 / 0.7); border-radius: 0.5rem; }
+
+.assistant-immersive__composer button {
+  flex: 0 0 auto;
+  padding: 0.7rem 1rem;
+  color: #1e1b4b;
+  border-radius: 0.85rem;
+  background: #a5b4fc;
+  font-size: 0.875rem;
+  font-weight: 700;
+  transition: transform 160ms ease, background-color 160ms ease;
+}
+
+.assistant-immersive__composer button:not(:disabled):hover { background: #c7d2fe; transform: translateY(-1px); }
+.assistant-immersive__composer button:not(:disabled):active { transform: scale(0.97); }
+.assistant-immersive__composer button:disabled { cursor: not-allowed; opacity: 0.5; }
+
+.assistant-immersive__end-chat {
+  padding: 0.35rem 0.75rem;
+  color: #94a3b8;
+  font-size: 0.8rem;
+  transition: color 150ms ease;
+}
+
+.assistant-immersive__end-chat:hover { color: #fff; }
+
+.assistant-immersive--closing .assistant-immersive__backdrop {
+  animation: assistant-immersive-undim 560ms ease-in both;
+}
+
+.assistant-immersive--closing .assistant-immersive__phone {
+  animation: assistant-phone-depart 560ms cubic-bezier(0.58, 0, 0.82, 0.28) both;
+}
+
+.assistant-immersive--closing .assistant-immersive__chat-icon {
+  animation: assistant-chat-depart 560ms cubic-bezier(0.58, 0, 0.82, 0.28) both;
+}
+
+.assistant-immersive--closing .assistant-immersive__copy,
+.assistant-immersive--closing .assistant-immersive__chat,
+.assistant-immersive--closing .assistant-immersive__wave,
+.assistant-immersive--closing .assistant-immersive__loading,
+.assistant-immersive--closing .assistant-immersive__controls {
+  animation: assistant-immersive-copy-out 240ms ease-in both;
+}
+
+.assistant-immersive__chat-icon--disconnecting .assistant-immersive__chat-bubble { animation: none; }
+
+@keyframes assistant-immersive-dim {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes assistant-phone-arrive {
+  from { opacity: 0.58; transform: translate3d(min(49vw, 720px), min(40vh, 420px), 0) rotate(18deg) scale(0.38); }
+  68% { opacity: 1; transform: translate3d(-8px, -6px, 0) rotate(-3deg) scale(1.06); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) rotate(0) scale(1); }
+}
+
+@keyframes assistant-phone-depart {
+  from { opacity: 1; transform: translate3d(0, 0, 0) rotate(0) scale(1); }
+  to { opacity: 0.45; transform: translate3d(min(49vw, 720px), min(40vh, 420px), 0) rotate(18deg) scale(0.36); }
+}
+
+@keyframes assistant-chat-depart {
+  from { opacity: 1; transform: translate3d(0, 0, 0) rotate(0) scale(1); }
+  to { opacity: 0.45; transform: translate3d(min(49vw, 720px), min(40vh, 420px), 0) rotate(-15deg) scale(0.34); }
+}
+
+@keyframes assistant-immersive-undim {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes assistant-immersive-copy-out {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(8px); }
+}
+
+@keyframes assistant-chat-arrive {
+  from { opacity: 0.55; transform: translate3d(min(49vw, 720px), min(40vh, 420px), 0) rotate(-15deg) scale(0.35); }
+  72% { opacity: 1; transform: translate3d(7px, -5px, 0) rotate(3deg) scale(1.06); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) rotate(0) scale(1); }
+}
+
+@keyframes assistant-chat-breathe {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-2px) scale(1.035); }
+}
+
+@keyframes assistant-chat-halo {
+  0% { opacity: 0.62; transform: rotate(-6deg) scale(0.82); }
+  100% { opacity: 0; transform: rotate(2deg) scale(1.5); }
+}
+
+@keyframes assistant-immersive-copy {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes assistant-call-ring {
+  0% { opacity: 0.65; transform: scale(0.82); }
+  100% { opacity: 0; transform: scale(1.6); }
+}
+
+@keyframes assistant-call-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.045); }
+}
+
+@keyframes assistant-wave {
+  0%, 100% { height: 0.5rem; opacity: 0.55; }
+  50% { height: 1.9rem; opacity: 1; }
+}
+
+@keyframes assistant-immersive-loading {
+  0%, 60%, 100% { opacity: 0.45; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-4px); }
+}
+
+@media (max-width: 640px) {
+  .assistant-immersive__scene { min-height: 20rem; padding-bottom: 6rem; }
+  .assistant-immersive__phone { width: 6rem; height: 6rem; }
+  .assistant-immersive__phone-icon { width: 4.5rem; height: 4.5rem; }
+  .assistant-immersive__scene--chat { padding: 2.5rem 0.75rem 10.5rem; }
+  .assistant-immersive__chat { max-height: min(44dvh, 24rem); margin-top: 1rem; padding-right: 0.2rem; padding-left: 0.2rem; }
+  .assistant-immersive__message { max-width: 92%; font-size: 0.875rem; }
+  .assistant-immersive__composer { gap: 0.35rem; }
+  .assistant-immersive__composer input { padding-right: 0.45rem; padding-left: 0.55rem; }
+  .assistant-immersive__composer button { padding-right: 0.8rem; padding-left: 0.8rem; }
+  @keyframes assistant-phone-arrive {
+    from { opacity: 0.58; transform: translate3d(46vw, 38vh, 0) rotate(18deg) scale(0.38); }
+    68% { opacity: 1; transform: translate3d(-6px, -4px, 0) rotate(-3deg) scale(1.06); }
+    to { opacity: 1; transform: translate3d(0, 0, 0) rotate(0) scale(1); }
+  }
+  @keyframes assistant-chat-arrive {
+    from { opacity: 0.55; transform: translate3d(46vw, 38vh, 0) rotate(-15deg) scale(0.35); }
+    72% { opacity: 1; transform: translate3d(5px, -4px, 0) rotate(3deg) scale(1.06); }
+    to { opacity: 1; transform: translate3d(0, 0, 0) rotate(0) scale(1); }
+  }
+  @keyframes assistant-phone-depart {
+    from { opacity: 1; transform: translate3d(0, 0, 0) rotate(0) scale(1); }
+    to { opacity: 0.45; transform: translate3d(46vw, 38vh, 0) rotate(18deg) scale(0.36); }
+  }
+  @keyframes assistant-chat-depart {
+    from { opacity: 1; transform: translate3d(0, 0, 0) rotate(0) scale(1); }
+    to { opacity: 0.45; transform: translate3d(46vw, 38vh, 0) rotate(-15deg) scale(0.34); }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .assistant-immersive__backdrop,
+  .assistant-immersive--closing .assistant-immersive__backdrop,
+  .assistant-immersive--closing .assistant-immersive__phone,
+  .assistant-immersive--closing .assistant-immersive__chat-icon,
+  .assistant-immersive--closing .assistant-immersive__copy,
+  .assistant-immersive--closing .assistant-immersive__chat,
+  .assistant-immersive--closing .assistant-immersive__wave,
+  .assistant-immersive--closing .assistant-immersive__loading,
+  .assistant-immersive--closing .assistant-immersive__controls,
+  .assistant-immersive__phone,
+  .assistant-immersive__phone-icon,
+  .assistant-immersive__chat-icon,
+  .assistant-immersive__chat-bubble,
+  .assistant-immersive__chat-ring,
+  .assistant-immersive__ring,
+  .assistant-immersive__copy,
+  .assistant-immersive__wave,
+  .assistant-immersive__wave span,
+  .assistant-immersive__loading,
+  .assistant-immersive__loading span,
+  .assistant-immersive__controls,
+  .assistant-immersive__message,
+  .assistant-immersive__typing span {
+    animation: none !important;
+  }
+
+  .assistant-immersive__backdrop { opacity: 1; }
+  .assistant-immersive__phone,
+  .assistant-immersive__chat-icon,
+  .assistant-immersive__chat,
+  .assistant-immersive__message,
+  .assistant-immersive__typing,
+  .assistant-immersive__composer,
+  .assistant-immersive__composer button,
+  .assistant-immersive__end-chat,
+  .assistant-immersive__copy,
+  .assistant-immersive__wave,
+  .assistant-immersive__loading,
+  .assistant-immersive__controls { opacity: 1; }
+
+  .assistant-immersive__phone,
+  .assistant-immersive__phone-icon,
+  .assistant-immersive__chat-bubble,
+  .assistant-immersive__chat-ring,
+  .assistant-immersive__composer,
+  .assistant-immersive__composer button,
+  .assistant-immersive__end-chat,
+  .assistant-immersive__hangup,
+  .assistant-immersive__cancel { transition: none !important; }
+}
+

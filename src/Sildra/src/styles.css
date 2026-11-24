@@ -44,3 +44,126 @@ main > div > section button:not(:disabled):active {
     transition-duration: .01ms !important;
   }
 }
+
+.app-theme {
+  min-height: 100vh;
+  color: #1e293b;
+  background: #f8fafc;
+  transition: background-color 220ms ease, color 220ms ease;
+}
+
+.app-theme--dark {
+  color-scheme: dark;
+  color: #e2e8f0;
+  background: #111827;
+}
+
+.app-theme--dark .bg-white,
+.app-theme--dark [class~="bg-white/95"] {
+  background-color: #1b2638 !important;
+}
+
+.app-theme--dark .bg-slate-50 { background-color: #111827 !important; }
+.app-theme--dark [class~="bg-slate-50/80"] { background-color: rgb(17 24 39 / .8) !important; }
+.app-theme--dark .bg-slate-100 { background-color: #1a2638 !important; }
+.app-theme--dark .bg-slate-200 { background-color: #243248 !important; }
+.app-theme--dark .bg-slate-700 { background-color: #334155 !important; }
+.app-theme--dark .bg-slate-900 { background-color: #182235 !important; }
+.app-theme--dark .bg-amber-50 { background-color: #342b19 !important; }
+.app-theme--dark .bg-amber-100 { background-color: #40351f !important; }
+.app-theme--dark .bg-red-50 { background-color: #351f29 !important; }
+.app-theme--dark .bg-rose-50 { background-color: #372230 !important; }
+.app-theme--dark .bg-blue-50 { background-color: #192f49 !important; }
+.app-theme--dark .bg-sky-50 { background-color: #193044 !important; }
+.app-theme--dark .bg-violet-50 { background-color: #292544 !important; }
+.app-theme--dark .bg-emerald-50,
+.app-theme--dark [class~="bg-emerald-50/60"] { background-color: #19352a !important; }
+
+.app-theme--dark .text-slate-950,
+.app-theme--dark .text-slate-900 { color: #f1f5f9 !important; }
+.app-theme--dark .text-slate-800,
+.app-theme--dark .text-slate-700 { color: #e2e8f0 !important; }
+.app-theme--dark .text-slate-600 { color: #cbd5e1 !important; }
+.app-theme--dark .text-slate-500 { color: #a6b3c5 !important; }
+.app-theme--dark .text-slate-400 { color: #91a0b4 !important; }
+.app-theme--dark .text-slate-300 { color: #b8c4d4 !important; }
+.app-theme--dark [class~="bg-amber-400"][class~="text-slate-950"] { color: #0f172a !important; }
+.app-theme--dark .text-amber-700,
+.app-theme--dark .text-amber-800,
+.app-theme--dark .text-amber-900,
+.app-theme--dark .text-amber-950 { color: #f6d77b !important; }
+.app-theme--dark .text-red-600,
+.app-theme--dark .text-red-700,
+.app-theme--dark .text-red-800 { color: #fda4af !important; }
+.app-theme--dark .text-rose-700 { color: #fda4af !important; }
+.app-theme--dark .text-blue-700,
+.app-theme--dark .text-blue-800 { color: #93c5fd !important; }
+.app-theme--dark .text-violet-700 { color: #c4b5fd !important; }
+.app-theme--dark .text-emerald-700,
+.app-theme--dark .text-emerald-800,
+.app-theme--dark .text-emerald-900 { color: #86efac !important; }
+
+.app-theme--dark .border-slate-50,
+.app-theme--dark .border-slate-100 { border-color: #202d40 !important; }
+.app-theme--dark .border-slate-200 { border-color: #2a3a51 !important; }
+.app-theme--dark .border-slate-300 { border-color: #3a4d66 !important; }
+.app-theme--dark .border-amber-100,
+.app-theme--dark .border-amber-200 { border-color: #594824 !important; }
+.app-theme--dark .border-amber-300,
+.app-theme--dark .border-amber-400 { border-color: #80682d !important; }
+.app-theme--dark .border-blue-200,
+.app-theme--dark .border-sky-100 { border-color: #2b4c6e !important; }
+.app-theme--dark .border-red-200 { border-color: #59313a !important; }
+.app-theme--dark .border-emerald-100,
+.app-theme--dark .border-emerald-200 { border-color: #285441 !important; }
+.app-theme--dark .divide-slate-100 > :not(:last-child) { border-color: #202d40 !important; }
+.app-theme--dark .divide-slate-200 > :not(:last-child) { border-color: #2a3a51 !important; }
+.app-theme--dark .hover\:bg-slate-50:hover { background-color: #1a2638 !important; }
+.app-theme--dark .hover\:bg-slate-100:hover { background-color: #243248 !important; }
+.app-theme--dark .hover\:bg-red-50:hover { background-color: #40252d !important; }
+.app-theme--dark .hover\:bg-amber-50:hover { background-color: #45391f !important; }
+.app-theme--dark .hover\:text-amber-700:hover,
+.app-theme--dark .hover\:text-amber-950:hover { color: #fcd34d !important; }
+.app-theme--dark .hover\:border-amber-300:hover { border-color: #9b7b31 !important; }
+
+.app-theme--dark input,
+.app-theme--dark select,
+.app-theme--dark textarea {
+  color-scheme: dark;
+}
+
+.app-theme--dark input[class~="border-slate-200"],
+.app-theme--dark input[class~="border-slate-300"],
+.app-theme--dark select[class~="border-slate-200"],
+.app-theme--dark select[class~="border-slate-300"],
+.app-theme--dark textarea[class~="border-slate-200"],
+.app-theme--dark textarea[class~="border-slate-300"] {
+  color: #e2e8f0 !important;
+  border-color: #3a4d66 !important;
+  background-color: #131d2c !important;
+}
+
+.app-theme--dark input::placeholder,
+.app-theme--dark textarea::placeholder { color: #91a0b4 !important; }
+
+.auth-theme-toggle,
+.theme-toggle {
+  background-color: rgb(255 255 255 / .76);
+  color: #475569;
+}
+
+.auth-theme-toggle { border-color: #e2e8f0; }
+
+.app-theme--dark .auth-theme-toggle,
+.app-theme--dark .theme-toggle {
+  color: #cbd5e1;
+  border-color: #2a3a51;
+  background-color: #182235;
+}
+
+.app-theme--dark .auth-transition { background: rgb(11 18 32 / .96); }
+.app-theme--dark .auth-transition__caption { color: #cbd5e1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .app-theme { transition: none; }
+}

@@ -31,11 +31,166 @@ interface ChatMessage {
   standalone: true,
   imports: [FormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrl: './voice-assistant.component.css',
   template: `
-    <section class="fixed bottom-5 right-5 z-40 flex flex-col items-end gap-3">
+    @if (inmersivo) {
+      <div
+        class="assistant-immersive"
+        [class.assistant-immersive--closing]="cerrandoInmersivo"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-label]="modo === 'voice' ? 'Conversación de voz con SildraSupport' : 'Chat con SildraSupport'"
+      >
+        <div class="assistant-immersive__backdrop"></div>
+
+        <main
+          class="assistant-immersive__scene"
+          [class.assistant-immersive__scene--chat]="modo === 'chat'"
+        >
+          @if (modo === 'voice') {
+            <div
+              class="assistant-immersive__phone"
+              [class.assistant-immersive__phone--connected]="estado === 'connected'"
+              [class.assistant-immersive__phone--disconnecting]="estado === 'disconnecting'"
+              aria-hidden="true"
+            >
+              <span class="assistant-immersive__ring"></span>
+              <span class="assistant-immersive__ring assistant-immersive__ring--delayed"></span>
+              <span class="assistant-immersive__phone-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 3.08 5.18 2 2 0 0 1 5.07 3h3a2 2 0 0 1 2 1.72c.12.96.36 1.9.7 2.8a2 2 0 0 1-.45 2.11L9.05 10.9a16 16 0 0 0 4.05 4.05l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.84.58 2.8.7A2 2 0 0 1 22 16.92z" />
+                </svg>
+              </span>
+            </div>
+          } @else {
+            <div
+              class="assistant-immersive__chat-icon"
+              [class.assistant-immersive__chat-icon--connected]="estado === 'connected'"
+              [class.assistant-immersive__chat-icon--disconnecting]="estado === 'disconnecting'"
+              aria-hidden="true"
+            >
+              <span class="assistant-immersive__chat-ring"></span>
+              <span class="assistant-immersive__chat-bubble">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z" />
+                  <path d="M8 12h.01M12 12h.01M16 12h.01" />
+                </svg>
+              </span>
+            </div>
+          }
+
+          <div class="assistant-immersive__copy" role="status" aria-live="polite">
+            <p class="text-xs font-semibold uppercase tracking-[0.24em] text-amber-300">SildraSupport</p>
+            <h2 class="mt-3 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+              {{ modo === 'voice' ? 'Asistente de soporte' : 'Chat con el asistente' }}
+            </h2>
+            <p class="mt-3 max-w-sm text-center text-sm leading-6 text-slate-300">
+              {{ modo === 'chat' && estado === 'connected' && mensajes.length === 0 ? 'Cuéntame en qué puedo ayudarte.' : textoEstado() }}
+            </p>
+          </div>
+
+          @if (modo === 'chat' && estado === 'connected') {
+            <div
+              #immersiveChatScroll
+              class="assistant-immersive__chat"
+              aria-label="Mensajes del chat"
+              aria-live="polite"
+            >
+              @if (mensajes.length === 0) {
+                <p class="assistant-immersive__welcome">
+                  Escribe tu consulta y te ayudaré a encontrar una solución.
+                </p>
+              }
+              @for (mensaje of mensajes; track mensaje.id) {
+                <div
+                  class="assistant-immersive__message"
+                  [class.assistant-immersive__message--user]="mensaje.sender === 'user'"
+                >
+                  {{ mensaje.text }}
+                </div>
+              }
+              @if (esperandoRespuesta) {
+                <div class="assistant-immersive__typing" role="status" aria-label="El asistente está escribiendo">
+                  <span></span><span></span><span></span>
+                </div>
+              }
+              @if (error) {
+                <p class="assistant-immersive__error" role="alert">{{ error }}</p>
+              }
+            </div>
+          }
+
+          @if (modo === 'voice' && estado === 'connected') {
+            <div class="assistant-immersive__wave" aria-hidden="true">
+              <span></span><span></span><span></span><span></span><span></span>
+              <span></span><span></span><span></span><span></span>
+            </div>
+          } @else if (estado === 'connecting') {
+            <div class="assistant-immersive__loading" role="status" aria-label="Conectando con el asistente">
+              <span></span><span></span><span></span>
+            </div>
+          }
+        </main>
+
+        <div
+          class="assistant-immersive__controls"
+          [class.assistant-immersive__controls--chat]="modo === 'chat' && estado === 'connected'"
+        >
+          @if ((estado === 'connected' || estado === 'disconnecting') && modo === 'voice') {
+            <button
+              type="button"
+              (click)="desconectar()"
+              [disabled]="estado === 'disconnecting'"
+              class="assistant-immersive__hangup"
+              aria-label="Terminar conversación"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M4.5 15.5a12 12 0 0 1 15 0l1.3 1a1.5 1.5 0 0 1 .3 2.1l-1.3 1.7a1.5 1.5 0 0 1-1.9.4l-3-1.5a1.5 1.5 0 0 1-.8-1.4l.1-1.1a12 12 0 0 0-4.4 0l.1 1.1a1.5 1.5 0 0 1-.8 1.4l-3 1.5a1.5 1.5 0 0 1-1.9-.4l-1.3-1.7a1.5 1.5 0 0 1 .3-2.1l1.3-1z" />
+              </svg>
+            </button>
+            <span class="text-sm text-slate-400">Terminar conversación</span>
+          } @else if (estado === 'connected' && modo === 'chat') {
+            <form class="assistant-immersive__composer" (ngSubmit)="enviarMensaje()">
+              <input
+                type="text"
+                name="mensajeChatImmersive"
+                [(ngModel)]="borrador"
+                [disabled]="enviando || estado !== 'connected'"
+                maxlength="1000"
+                autocomplete="off"
+                placeholder="Escribe un mensaje…"
+                aria-label="Escribe tu mensaje"
+              />
+              <button type="submit" [disabled]="!borrador.trim() || enviando" aria-label="Enviar mensaje">
+                Enviar
+              </button>
+            </form>
+            <button type="button" class="assistant-immersive__end-chat" (click)="desconectar()">
+              Terminar chat
+            </button>
+          } @else if (estado === 'disconnecting' && modo === 'chat') {
+            <span class="text-sm text-slate-400">Terminando chat…</span>
+          } @else {
+            <button
+              type="button"
+              (click)="cancelarConexion()"
+              class="assistant-immersive__cancel"
+            >
+              Cancelar
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    <section
+      class="fixed bottom-5 right-5 z-40 flex flex-col items-end gap-3"
+      [class.assistant-widget--hidden]="inmersivo"
+      [attr.aria-hidden]="inmersivo ? 'true' : null"
+    >
       @if (abierto) {
         <div
-          class="w-[min(22rem,calc(100vw-2rem))] rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl"
+          class="assistant-panel w-[min(22rem,calc(100vw-2rem))] rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl"
           aria-label="Asistente de soporte de SildraSupport"
         >
           <div class="flex items-start justify-between gap-4">
@@ -82,7 +237,36 @@ interface ChatMessage {
             </button>
           </div>
 
-          <p class="mt-3 text-sm text-slate-600">{{ textoEstado() }}</p>
+          @if (modo === 'voice') {
+            <div
+              class="assistant-voice-visual"
+              [class.assistant-voice-visual--connecting]="estado === 'connecting'"
+              [class.assistant-voice-visual--connected]="estado === 'connected'"
+              [class.assistant-voice-visual--disconnecting]="estado === 'disconnecting'"
+              aria-hidden="true"
+            >
+              <span class="assistant-voice-visual__ring"></span>
+              <span class="assistant-voice-visual__ring assistant-voice-visual__ring--delayed"></span>
+              <span class="assistant-voice-visual__orb">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="2" width="6" height="12" rx="3" />
+                  <path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3m-4 0h8" />
+                </svg>
+              </span>
+            </div>
+          }
+
+          <div
+            class="assistant-status mt-3 flex items-start gap-2"
+            [class.assistant-status--connecting]="estado === 'connecting'"
+            [class.assistant-status--connected]="estado === 'connected'"
+            [class.assistant-status--disconnecting]="estado === 'disconnecting'"
+            role="status"
+            aria-live="polite"
+          >
+            <span class="assistant-status__dot" aria-hidden="true"></span>
+            <p class="text-sm text-slate-600">{{ textoEstado() }}</p>
+          </div>
 
           @if (modo === 'chat') {
             <div
@@ -98,7 +282,7 @@ interface ChatMessage {
               }
               @for (mensaje of mensajes; track mensaje.id) {
                 <div
-                  class="max-w-[88%] rounded-2xl px-3 py-2 text-sm leading-relaxed"
+                  class="assistant-message max-w-[88%] rounded-2xl px-3 py-2 text-sm leading-relaxed"
                   [class.self-end]="mensaje.sender === 'user'"
                   [class.bg-slate-900]="mensaje.sender === 'user'"
                   [class.text-white]="mensaje.sender === 'user'"
@@ -111,9 +295,15 @@ interface ChatMessage {
                 </div>
               }
               @if (esperandoRespuesta) {
-                <p class="self-start rounded-2xl bg-white px-3 py-2 text-sm text-slate-500 shadow-sm">
-                  El asistente está escribiendo…
-                </p>
+                <div
+                  class="assistant-typing self-start rounded-2xl bg-white px-3 py-2 shadow-sm"
+                  role="status"
+                  aria-label="El asistente está escribiendo"
+                >
+                  <span class="assistant-typing__dot"></span>
+                  <span class="assistant-typing__dot"></span>
+                  <span class="assistant-typing__dot"></span>
+                </div>
               }
             </div>
 
@@ -145,7 +335,7 @@ interface ChatMessage {
           @if (error) {
             <p
               role="alert"
-              class="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+              class="assistant-error mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700"
             >
               {{ error }}
             </p>
@@ -189,8 +379,10 @@ interface ChatMessage {
         type="button"
         (click)="abierto = !abierto"
         [attr.aria-expanded]="abierto"
+        [class.assistant-launcher--attention]="estado === 'idle' && !abierto"
+        [class.assistant-launcher--active]="estado === 'connected'"
         aria-label="Abrir asistente de soporte"
-        class="flex min-h-12 items-center gap-2 rounded-full bg-amber-400 px-5 py-3 text-sm font-bold text-slate-950 shadow-lg transition hover:bg-amber-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600"
+        class="assistant-launcher flex min-h-12 items-center gap-2 rounded-full bg-amber-400 px-5 py-3 text-sm font-bold text-slate-950 shadow-lg transition hover:bg-amber-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600"
       >
         <svg
           aria-hidden="true"
@@ -214,8 +406,11 @@ interface ChatMessage {
 export class VoiceAssistantComponent implements OnDestroy {
   @ViewChild('audioContainer') private audioContainer?: ElementRef<HTMLDivElement>;
   @ViewChild('chatScroll') private chatScroll?: ElementRef<HTMLDivElement>;
+  @ViewChild('immersiveChatScroll') private immersiveChatScroll?: ElementRef<HTMLDivElement>;
 
   abierto = false;
+  inmersivo = false;
+  cerrandoInmersivo = false;
   estado: VoiceState = 'idle';
   modo: AssistantMode = 'chat';
   error = '';
@@ -226,6 +421,7 @@ export class VoiceAssistantComponent implements OnDestroy {
 
   private room?: LiveKitRoom;
   private responseTimer?: ReturnType<typeof setTimeout>;
+  private voiceAttemptId = 0;
 
   constructor(
     private readonly api: ApiService,
@@ -235,17 +431,28 @@ export class VoiceAssistantComponent implements OnDestroy {
   async conectar(): Promise<void> {
     if (this.estado !== 'idle') return;
 
+    const attemptId = ++this.voiceAttemptId;
     this.error = '';
+    this.inmersivo = true;
     this.estado = 'connecting';
     this.esperandoRespuesta = false;
     if (this.modo === 'chat') this.mensajes = [];
     this.changeDetector.markForCheck();
     let paso: 'token' | 'conexion' | 'microfono' = 'token';
     try {
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        await new Promise<void>((resolve) => setTimeout(resolve, 880));
+      }
+      if (attemptId !== this.voiceAttemptId) return;
+
       const details = await firstValueFrom(
         this.api.request<VoiceConnectionDetails>('/voice/token', { method: 'POST' }),
       );
+      if (attemptId !== this.voiceAttemptId) return;
+
       const { Room, RoomEvent } = await import('livekit-client');
+      if (attemptId !== this.voiceAttemptId) return;
+
       const room = new Room();
       this.room = room;
       room.on(RoomEvent.TrackSubscribed, (track) => this.adjuntarAudio(track));
@@ -255,27 +462,38 @@ export class VoiceAssistantComponent implements OnDestroy {
         void this.recibirRespuesta(reader);
       });
       room.on(RoomEvent.Disconnected, () => {
+        if (this.room !== room) return;
+        this.voiceAttemptId++;
         this.limpiarTemporizadorRespuesta();
         this.limpiarAudio();
         this.room = undefined;
-        this.estado = 'idle';
         this.esperandoRespuesta = false;
+        this.estado = 'disconnecting';
         this.changeDetector.markForCheck();
+        if (!this.cerrandoInmersivo) void this.finalizarDesconexionRemota();
       });
 
       paso = 'conexion';
       await room.connect(details.serverUrl, details.participantToken);
-      await this.esperarAgente(room, RoomEvent);
+      if (attemptId !== this.voiceAttemptId) {
+        await room.disconnect();
+        return;
+      }
+      await this.esperarAgente(room, RoomEvent, attemptId);
+      if (attemptId !== this.voiceAttemptId) return;
       if (this.modo === 'voice') {
         paso = 'microfono';
         await room.localParticipant.setMicrophoneEnabled(true);
       }
+      if (attemptId !== this.voiceAttemptId) return;
       this.estado = 'connected';
       this.changeDetector.markForCheck();
     } catch (error) {
+      if (attemptId !== this.voiceAttemptId) return;
       await this.room?.disconnect().catch(() => undefined);
       this.limpiarAudio();
       this.room = undefined;
+      this.inmersivo = false;
       this.estado = 'idle';
       this.error = this.mensajeError(error, paso);
       this.changeDetector.markForCheck();
@@ -284,14 +502,36 @@ export class VoiceAssistantComponent implements OnDestroy {
 
   async desconectar(): Promise<void> {
     if (!this.room || this.estado === 'disconnecting') return;
+    const room = this.room;
     this.estado = 'disconnecting';
     this.limpiarTemporizadorRespuesta();
     this.changeDetector.markForCheck();
-    await this.room.disconnect();
+    await this.cerrarVisualInmersivo();
+    await room.disconnect().catch(() => undefined);
     this.limpiarAudio();
     this.room = undefined;
+    this.inmersivo = false;
+    this.cerrandoInmersivo = false;
     this.estado = 'idle';
     this.esperandoRespuesta = false;
+    this.changeDetector.markForCheck();
+  }
+
+  async cancelarConexion(): Promise<void> {
+    if (this.estado !== 'connecting') return;
+
+    this.voiceAttemptId++;
+    const room = this.room;
+    this.limpiarTemporizadorRespuesta();
+    this.limpiarAudio();
+    this.estado = 'disconnecting';
+    this.changeDetector.markForCheck();
+    await this.cerrarVisualInmersivo();
+    await room?.disconnect().catch(() => undefined);
+    this.room = undefined;
+    this.inmersivo = false;
+    this.cerrandoInmersivo = false;
+    this.estado = 'idle';
     this.changeDetector.markForCheck();
   }
 
@@ -354,8 +594,11 @@ export class VoiceAssistantComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.voiceAttemptId++;
     this.limpiarTemporizadorRespuesta();
-    void this.room?.disconnect();
+    const room = this.room;
+    this.room = undefined;
+    void room?.disconnect();
     this.limpiarAudio();
   }
 
@@ -379,23 +622,32 @@ export class VoiceAssistantComponent implements OnDestroy {
   private actualizarChat(): void {
     this.changeDetector.markForCheck();
     setTimeout(() => {
-      const element = this.chatScroll?.nativeElement;
+      const element = (this.inmersivo ? this.immersiveChatScroll : this.chatScroll)?.nativeElement;
       if (element) element.scrollTop = element.scrollHeight;
     });
   }
 
-  private esperarAgente(room: LiveKitRoom, roomEvent: typeof import('livekit-client').RoomEvent): Promise<void> {
+  private esperarAgente(
+    room: LiveKitRoom,
+    roomEvent: typeof import('livekit-client').RoomEvent,
+    attemptId: number,
+  ): Promise<void> {
     if (room.remoteParticipants.size > 0) return Promise.resolve();
 
     return new Promise((resolve, reject) => {
       const cleanup = () => {
         clearTimeout(timeout);
         room.off(roomEvent.ParticipantConnected, onParticipantConnected);
+        room.off(roomEvent.Disconnected, onDisconnected);
       };
       const onParticipantConnected = () => {
         if (room.remoteParticipants.size === 0) return;
         cleanup();
         resolve();
+      };
+      const onDisconnected = () => {
+        cleanup();
+        reject(new Error('SILDRA_CONNECT_CANCELLED'));
       };
       const timeout = setTimeout(() => {
         cleanup();
@@ -403,6 +655,12 @@ export class VoiceAssistantComponent implements OnDestroy {
       }, 30_000);
 
       room.on(roomEvent.ParticipantConnected, onParticipantConnected);
+      room.on(roomEvent.Disconnected, onDisconnected);
+      if (attemptId !== this.voiceAttemptId) {
+        cleanup();
+        reject(new Error('SILDRA_CONNECT_CANCELLED'));
+        return;
+      }
       if (room.remoteParticipants.size > 0) onParticipantConnected();
     });
   }
@@ -433,6 +691,26 @@ export class VoiceAssistantComponent implements OnDestroy {
         this.changeDetector.markForCheck();
       }
     }
+  }
+
+  private async finalizarDesconexionRemota(): Promise<void> {
+    await this.cerrarVisualInmersivo();
+    this.estado = 'idle';
+    this.esperandoRespuesta = false;
+    this.cerrandoInmersivo = false;
+    this.changeDetector.markForCheck();
+  }
+
+  private async cerrarVisualInmersivo(): Promise<void> {
+    if (!this.inmersivo) return;
+
+    this.cerrandoInmersivo = true;
+    this.changeDetector.markForCheck();
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      await new Promise<void>((resolve) => setTimeout(resolve, 580));
+    }
+    this.inmersivo = false;
+    this.changeDetector.markForCheck();
   }
 
   private limpiarTemporizadorRespuesta(): void {

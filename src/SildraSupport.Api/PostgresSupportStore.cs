@@ -9,6 +9,7 @@ namespace SildraSupport.Api;
 
 internal sealed record SupportUser(Guid Id, Guid? TenantId, string Name, string Email, string Role, string? PasswordHash, string Status);
 internal sealed record OrganizationResponse(Guid Id, string Name, string Branch);
+internal sealed record TicketUpdateResult(TicketResponse Ticket, bool AssigneeChanged, string? AssignedAgentName, string? AssignedAgentEmail);
 
 internal sealed class PostgresSupportStore(NpgsqlDataSource dataSource)
 {
@@ -552,7 +553,7 @@ internal sealed class PostgresSupportStore(NpgsqlDataSource dataSource)
             NormalizeChannel(channel), now, now.AddHours(hours), string.Empty, phone);
     }
 
-    public async Task<TicketResponse?> UpdateTicketAsync(
+    public async Task<TicketUpdateResult?> UpdateTicketAsync(
         Guid ticketId, Guid adminId, string status, string priority, string queue,
         Guid? assigneeId, CancellationToken cancellationToken = default)
     {
@@ -573,6 +574,19 @@ internal sealed class PostgresSupportStore(NpgsqlDataSource dataSource)
             displayNumber = reader.GetString(1);
         }
 
+        Guid? previousAssigneeId = null;
+        await using (var findAssignment = new NpgsqlCommand("""
+            SELECT assignee_ref FROM assignment
+            WHERE ticket_id = @ticket_id AND ended_at IS NULL
+            ORDER BY assigned_at DESC LIMIT 1;
+            """, connection, transaction))
+        {
+            Add(findAssignment, "ticket_id", NpgsqlDbType.Uuid, ticketId);
+            var activeAssigneeRef = await findAssignment.ExecuteScalarAsync(cancellationToken);
+            if (activeAssigneeRef is string currentAssigneeRef && Guid.TryParse(currentAssigneeRef, out var currentAssigneeId))
+                previousAssigneeId = currentAssigneeId;
+        }
+
         SupportUser? assignee = null;
         if (assigneeId is Guid id)
         {
@@ -580,6 +594,8 @@ internal sealed class PostgresSupportStore(NpgsqlDataSource dataSource)
             if (assignee is null || string.Equals(assignee.Role, "User", StringComparison.OrdinalIgnoreCase)) return null;
             if (!string.Equals(assignee.Role, "Admin", StringComparison.OrdinalIgnoreCase) && assignee.TenantId != tenantId) return null;
         }
+
+        var assigneeChanged = assigneeId != previousAssigneeId;
 
         await using (var update = new NpgsqlCommand("""
             UPDATE ticket SET status = @status, priority = @priority, updated_by_ref = @actor,
@@ -651,7 +667,14 @@ internal sealed class PostgresSupportStore(NpgsqlDataSource dataSource)
         await transaction.CommitAsync(cancellationToken);
 
         var tickets = await GetTicketsByIdsAsync(ticketId, cancellationToken);
-        return tickets.FirstOrDefault();
+        var ticket = tickets.FirstOrDefault();
+        if (ticket is null) return null;
+
+        var assignedAgent = assigneeChanged && assignee is not null &&
+                            string.Equals(assignee.Role, "Agent", StringComparison.OrdinalIgnoreCase)
+            ? assignee
+            : null;
+        return new TicketUpdateResult(ticket, assigneeChanged, assignedAgent?.Name, assignedAgent?.Email);
     }
 
     public async Task<IReadOnlyList<object>> GetUsersAsync(CancellationToken cancellationToken = default)
@@ -1170,6 +1193,21 @@ internal sealed class PostgresSupportStore(NpgsqlDataSource dataSource)
             agents.Add(new { id = reader.GetGuid(0), name = reader.GetString(1), role = reader.GetString(2) });
         return agents;
     }
+
+    public async Task<IReadOnlyList<string>> GetCollaboratorEmailsForTicketAsync(Guid ticketId, Guid actorId, CancellationToken cancellationToken = default)
+    {
+        const string sql = "SELECT DISTINCT a.email FROM app_user a JOIN ticket t ON t.tenant_id = a.tenant_id WHERE t.id = @ticket_id AND lower(a.role) = 'agent' AND a.id <> @actor_id ORDER BY a.email;";
+        await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
+        await using var command = new NpgsqlCommand(sql, connection);
+        Add(command, "ticket_id", NpgsqlDbType.Uuid, ticketId);
+        Add(command, "actor_id", NpgsqlDbType.Uuid, actorId);
+        var emails = new List<string>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+            emails.Add(reader.GetString(0));
+        return emails;
+    }
+
 
     public async Task<bool> IsDatabaseReadyAsync(CancellationToken cancellationToken = default)
     {
